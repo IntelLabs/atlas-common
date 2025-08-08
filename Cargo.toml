@@ -1,0 +1,39 @@
+[package]
+name = "atlas-core"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Organization"]
+description = "Core functionality shared across Atlas C2PA components"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/yourusername/atlas-core"
+
+[dependencies]
+# Hashing
+sha2 = "0.10"
+hex = "0.4"
+subtle = "2.5"
+
+# Error handling
+thiserror = "1.0"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Date/time - Added parsing and formatting features
+time = { version = "0.3", features = ["serde", "serde-well-known", "formatting", "parsing"] }
+chrono = "0.4"
+
+# UUID generation
+uuid = { version = "1.6", features = ["v4", "serde"] }
+
+# Async runtime (optional)
+tokio = { version = "1.35", features = ["full"], optional = true }
+async-trait = { version = "0.1", optional = true }
+
+[features]
+default = []
+async = ["tokio", "async-trait"]
+
+[dev-dependencies]
+tempfile = "3.8"
