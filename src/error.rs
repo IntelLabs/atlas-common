@@ -17,6 +17,7 @@ pub enum Error {
     #[error("Serialization error: {0}")]
     Serialization(String),
 
+    #[cfg(feature = "hash")]
     #[error("Hex decode error: {0}")]
     HexDecode(#[from] hex::FromHexError),
 
@@ -55,6 +56,7 @@ impl Error {
             Error::Validation(_) => "VALIDATION_ERROR",
             Error::Hash(_) => "HASH_ERROR",
             Error::Serialization(_) => "SERIALIZATION_ERROR",
+            #[cfg(feature = "hash")]
             Error::HexDecode(_) => "HEX_DECODE_ERROR",
             Error::Json(_) => "JSON_ERROR",
             Error::Time(_) => "TIME_ERROR",

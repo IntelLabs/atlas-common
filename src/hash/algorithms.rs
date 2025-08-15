@@ -88,20 +88,20 @@ impl HashBuilder {
     /// Create a new hash builder
     pub fn new(algorithm: HashAlgorithm) -> Self {
         use sha2::Digest;
-        
+
         let hasher = match algorithm {
             HashAlgorithm::Sha256 => HashBuilderInner::Sha256(sha2::Sha256::new()),
             HashAlgorithm::Sha384 => HashBuilderInner::Sha384(sha2::Sha384::new()),
             HashAlgorithm::Sha512 => HashBuilderInner::Sha512(sha2::Sha512::new()),
         };
-        
+
         Self { algorithm, hasher }
     }
 
     /// Update the hash with more data
     pub fn update(&mut self, data: &[u8]) {
         use sha2::Digest;
-        
+
         match &mut self.hasher {
             HashBuilderInner::Sha256(h) => h.update(data),
             HashBuilderInner::Sha384(h) => h.update(data),
@@ -112,7 +112,7 @@ impl HashBuilder {
     /// Finalize and get the hash
     pub fn finalize(self) -> String {
         use sha2::Digest;
-        
+
         match self.hasher {
             HashBuilderInner::Sha256(h) => hex::encode(h.finalize()),
             HashBuilderInner::Sha384(h) => hex::encode(h.finalize()),
@@ -160,20 +160,29 @@ mod tests {
     fn test_algorithm_properties() {
         assert_eq!(HashAlgorithm::Sha256.output_size(), 32);
         assert_eq!(HashAlgorithm::Sha256.hex_length(), 64);
-        
+
         assert_eq!(HashAlgorithm::Sha384.output_size(), 48);
         assert_eq!(HashAlgorithm::Sha384.hex_length(), 96);
-        
+
         assert_eq!(HashAlgorithm::Sha512.output_size(), 64);
         assert_eq!(HashAlgorithm::Sha512.hex_length(), 128);
     }
 
     #[test]
     fn test_algorithm_parsing() {
-        assert_eq!(HashAlgorithm::from_str("sha256").unwrap(), HashAlgorithm::Sha256);
-        assert_eq!(HashAlgorithm::from_str("SHA384").unwrap(), HashAlgorithm::Sha384);
-        assert_eq!(HashAlgorithm::from_str("sha-512").unwrap(), HashAlgorithm::Sha512);
-        
+        assert_eq!(
+            HashAlgorithm::from_str("sha256").unwrap(),
+            HashAlgorithm::Sha256
+        );
+        assert_eq!(
+            HashAlgorithm::from_str("SHA384").unwrap(),
+            HashAlgorithm::Sha384
+        );
+        assert_eq!(
+            HashAlgorithm::from_str("sha-512").unwrap(),
+            HashAlgorithm::Sha512
+        );
+
         assert!(HashAlgorithm::from_str("md5").is_err());
     }
 
@@ -183,9 +192,9 @@ mod tests {
         builder.update(b"hello ");
         builder.update(b"world");
         let hash = builder.finalize();
-        
+
         assert_eq!(hash.len(), 64);
-        
+
         // Should match direct hash
         let direct_hash = "hello world".hash(HashAlgorithm::Sha256);
         assert_eq!(hash, direct_hash);
@@ -197,7 +206,7 @@ mod tests {
         let hash1 = data.hash(HashAlgorithm::Sha256);
         let hash2 = data.as_bytes().hash(HashAlgorithm::Sha256);
         let hash3 = data.to_string().hash(HashAlgorithm::Sha256);
-        
+
         assert_eq!(hash1, hash2);
         assert_eq!(hash2, hash3);
     }

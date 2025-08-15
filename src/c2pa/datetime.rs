@@ -4,10 +4,7 @@ use time::OffsetDateTime;
 
 /// Wrapper for OffsetDateTime with serde support
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DateTimeWrapper(
-    #[serde(with = "time::serde::rfc3339")]
-    pub OffsetDateTime
-);
+pub struct DateTimeWrapper(#[serde(with = "time::serde::rfc3339")] pub OffsetDateTime);
 
 impl DateTimeWrapper {
     /// Create new with current UTC time
@@ -19,15 +16,13 @@ impl DateTimeWrapper {
     pub fn validate(&self) -> Result<()> {
         if self.0.year() < 1970 {
             return Err(Error::Time(
-                "Datetime must be after January 1, 1970".to_string()
+                "Datetime must be after January 1, 1970".to_string(),
             ));
         }
 
         let now = OffsetDateTime::now_utc();
         if self.0 > now {
-            return Err(Error::Time(
-                "Datetime cannot be in the future".to_string()
-            ));
+            return Err(Error::Time("Datetime cannot be in the future".to_string()));
         }
 
         Ok(())
@@ -35,7 +30,8 @@ impl DateTimeWrapper {
 
     /// Get as RFC3339 string
     pub fn to_rfc3339(&self) -> String {
-        self.0.format(&time::format_description::well_known::Rfc3339)
+        self.0
+            .format(&time::format_description::well_known::Rfc3339)
             .unwrap_or_else(|_| self.0.to_string())
     }
 }

@@ -4,7 +4,7 @@
 
 mod algorithms;
 
-pub use algorithms::{HashAlgorithm, Hasher, HashBuilder};
+pub use algorithms::{HashAlgorithm, HashBuilder, Hasher};
 
 use crate::error::{Error, Result};
 use sha2::{Digest, Sha256, Sha384, Sha512};
@@ -37,7 +37,7 @@ pub fn calculate_file_hash_with_algorithm(
     algorithm: &HashAlgorithm,
 ) -> Result<String> {
     let file = std::fs::File::open(path)?;
-    
+
     match algorithm {
         HashAlgorithm::Sha256 => hash_reader::<Sha256, _>(file),
         HashAlgorithm::Sha384 => hash_reader::<Sha384, _>(file),
@@ -51,10 +51,7 @@ pub fn combine_hashes(hashes: &[&str]) -> Result<String> {
 }
 
 /// Combine hashes with specific algorithm
-pub fn combine_hashes_with_algorithm(
-    hashes: &[&str],
-    algorithm: &HashAlgorithm,
-) -> Result<String> {
+pub fn combine_hashes_with_algorithm(hashes: &[&str], algorithm: &HashAlgorithm) -> Result<String> {
     let mut combined = Vec::new();
     for hash in hashes {
         let bytes = hex::decode(hash)?;
@@ -117,9 +114,11 @@ pub fn get_hash_length(algorithm: &HashAlgorithm) -> usize {
 /// Validate hash format
 pub fn validate_hash_format(hash: &str) -> Result<()> {
     if !hash.chars().all(|c| c.is_ascii_hexdigit()) {
-        return Err(Error::Validation("Invalid hash: not hexadecimal".to_string()));
+        return Err(Error::Validation(
+            "Invalid hash: not hexadecimal".to_string(),
+        ));
     }
-    
+
     let valid_lengths = [64, 96, 128];
     if !valid_lengths.contains(&hash.len()) {
         return Err(Error::Validation(format!(
@@ -127,7 +126,7 @@ pub fn validate_hash_format(hash: &str) -> Result<()> {
             hash.len()
         )));
     }
-    
+
     Ok(())
 }
 
@@ -135,7 +134,7 @@ pub fn validate_hash_format(hash: &str) -> Result<()> {
 fn hash_reader<D: Digest, R: Read>(mut reader: R) -> Result<String> {
     let mut hasher = D::new();
     let mut buffer = [0; 8192];
-    
+
     loop {
         let bytes_read = reader.read(&mut buffer)?;
         if bytes_read == 0 {
@@ -143,7 +142,7 @@ fn hash_reader<D: Digest, R: Read>(mut reader: R) -> Result<String> {
         }
         hasher.update(&buffer[..bytes_read]);
     }
-    
+
     Ok(hex::encode(hasher.finalize()))
 }
 
@@ -152,10 +151,10 @@ fn constant_time_compare(a: &str, b: &str) -> bool {
     if a.len() != b.len() {
         return false;
     }
-    
+
     let a_bytes = a.as_bytes();
     let b_bytes = b.as_bytes();
-    
+
     a_bytes.ct_eq(b_bytes).into()
 }
 
@@ -163,7 +162,6 @@ fn constant_time_compare(a: &str, b: &str) -> bool {
 mod tests {
     use super::*;
     use tempfile::tempdir;
-    use std::io::Write;
 
     #[test]
     fn test_calculate_hash() {
@@ -185,12 +183,12 @@ mod tests {
         let dir = tempdir()?;
         let file_path = dir.path().join("test.txt");
         std::fs::write(&file_path, b"test content")?;
-        
+
         let hash = calculate_file_hash(&file_path)?;
         assert_eq!(hash.len(), 96);
-        
+
         assert!(verify_file_hash(&file_path, &hash)?);
-        
+
         Ok(())
     }
 
@@ -198,14 +196,14 @@ mod tests {
     fn test_combine_hashes() -> Result<()> {
         let hash1 = calculate_hash(b"data1");
         let hash2 = calculate_hash(b"data2");
-        
+
         let combined = combine_hashes(&[&hash1, &hash2])?;
         assert_eq!(combined.len(), 96);
-        
+
         // Order matters
         let combined_reversed = combine_hashes(&[&hash2, &hash1])?;
         assert_ne!(combined, combined_reversed);
-        
+
         Ok(())
     }
 
@@ -214,7 +212,7 @@ mod tests {
         let sha256 = "a".repeat(64);
         let sha384 = "b".repeat(96);
         let sha512 = "c".repeat(128);
-        
+
         assert_eq!(detect_hash_algorithm(&sha256), HashAlgorithm::Sha256);
         assert_eq!(detect_hash_algorithm(&sha384), HashAlgorithm::Sha384);
         assert_eq!(detect_hash_algorithm(&sha512), HashAlgorithm::Sha512);

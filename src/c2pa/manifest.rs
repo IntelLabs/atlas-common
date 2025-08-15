@@ -84,17 +84,17 @@ impl ManifestId {
     /// Create from URN string
     pub fn from_urn(urn: &str) -> crate::error::Result<Self> {
         let parts: Vec<&str> = urn.split(':').collect();
-        
+
         if parts.len() < 3 || parts[0] != "urn" || parts[1] != "c2pa" {
-            return Err(crate::error::Error::InvalidFormat(
-                format!("Invalid C2PA URN format: {}", urn)
-            ));
+            return Err(crate::error::Error::InvalidFormat(format!(
+                "Invalid C2PA URN format: {}",
+                urn
+            )));
         }
 
-        let uuid = Uuid::parse_str(parts[2])
-            .map_err(|e| crate::error::Error::InvalidFormat(
-                format!("Invalid UUID in URN: {}", e)
-            ))?;
+        let uuid = Uuid::parse_str(parts[2]).map_err(|e| {
+            crate::error::Error::InvalidFormat(format!("Invalid UUID in URN: {}", e))
+        })?;
 
         let claim_generator = if parts.len() > 3 {
             Some(parts[3].to_string())
@@ -103,7 +103,9 @@ impl ManifestId {
         };
 
         let version = if parts.len() > 4 {
-            parts[4].split('_').next()
+            parts[4]
+                .split('_')
+                .next()
                 .and_then(|v| v.parse::<u32>().ok())
         } else {
             None
