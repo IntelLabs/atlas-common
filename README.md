@@ -21,7 +21,7 @@ Atlas Core is designed with modularity in mind. You can use only the features yo
 - **`validation`**: Validation utilities for manifests, URNs, and hashes
 - **`file-utils`**: Secure file operations with symlink and hard link protection
 - **`async`**: Async support for storage operations
-- **`full`**: Enable all features
+- **`all`**: Enable all features
 
 ## Installation
 
