@@ -7,52 +7,68 @@ use crate::error::{Error, Result};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-/// Types of assets in the C2PA framework
+/// C2PA asset types for machine learning artifacts
+///
+/// These types follow the C2PA naming convention for different asset categories.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum AssetType {
     // Datasets
+    /// Generic dataset
     #[serde(rename = "c2pa.types.dataset")]
     Dataset,
 
+    /// TensorFlow dataset format
     #[serde(rename = "c2pa.types.dataset.tensorflow")]
     DatasetTensorFlow,
 
+    /// PyTorch dataset format
     #[serde(rename = "c2pa.types.dataset.pytorch")]
     DatasetPyTorch,
 
+    /// ONNX dataset format
     #[serde(rename = "c2pa.types.dataset.onnx")]
     DatasetOnnx,
 
     // Models
+    /// Generic model
     #[serde(rename = "c2pa.types.model")]
     Model,
 
+    /// TensorFlow model
     #[serde(rename = "c2pa.types.model.tensorflow")]
     ModelTensorFlow,
 
+    /// PyTorch model
     #[serde(rename = "c2pa.types.model.pytorch")]
     ModelPyTorch,
 
+    /// ONNX model
     #[serde(rename = "c2pa.types.model.onnx")]
     ModelOnnx,
 
+    /// OpenVINO model
     #[serde(rename = "c2pa.types.model.openvino")]
     ModelOpenVino,
 
     // Software
+    /// Software/code artifact
     #[serde(rename = "c2pa.types.software")]
     Software,
 
+    /// Generator/tool artifact
     #[serde(rename = "c2pa.types.generator")]
     Generator,
 
     // Formats
+    /// NumPy array format
     #[serde(rename = "c2pa.types.format.numpy")]
     FormatNumpy,
 
+    /// Python pickle format
     #[serde(rename = "c2pa.types.format.pickle")]
     FormatPickle,
 
+    /// Protocol buffer format
     #[serde(rename = "c2pa.types.format.protobuf")]
     FormatProtobuf,
 }
@@ -60,13 +76,39 @@ pub enum AssetType {
 /// High-level classification of assets
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AssetKind {
+    /// Machine learning model
     Model,
+    /// Training or evaluation dataset
     Dataset,
+    /// Software or code
     Software,
+    /// Evaluation results or benchmarks
     Evaluation,
 }
 
 /// Determine the asset type based on file path and kind
+///
+/// # Arguments
+///
+/// * `path` - File path to analyze
+/// * `kind` - High-level asset classification
+///
+/// # Errors
+///
+/// Returns an error if the file has no extension.
+///
+/// # Example
+///
+/// ```rust
+/// use atlas_core::c2pa::{determine_asset_type, AssetKind};
+/// use std::path::Path;
+///
+/// let asset_type = determine_asset_type(
+///     Path::new("model.onnx"),
+///     AssetKind::Model
+/// )?;
+/// # Ok::<(), atlas_core::Error>(())
+/// ```
 pub fn determine_asset_type(path: &Path, kind: AssetKind) -> Result<AssetType> {
     match kind {
         AssetKind::Model => determine_model_type(path),
@@ -77,6 +119,10 @@ pub fn determine_asset_type(path: &Path, kind: AssetKind) -> Result<AssetType> {
 }
 
 /// Determine the specific model type from a file path
+///
+/// # Errors
+///
+/// Returns an error if the file has no extension.
 pub fn determine_model_type(path: &Path) -> Result<AssetType> {
     match path.extension().and_then(|ext| ext.to_str()) {
         Some("pb") | Some("savedmodel") | Some("tf") => Ok(AssetType::ModelTensorFlow),
@@ -93,6 +139,10 @@ pub fn determine_model_type(path: &Path) -> Result<AssetType> {
 }
 
 /// Determine the specific dataset type from a file path
+///
+/// # Errors
+///
+/// Returns an error if the file has no extension.
 pub fn determine_dataset_type(path: &Path) -> Result<AssetType> {
     match path.extension().and_then(|ext| ext.to_str()) {
         Some("csv") | Some("tsv") | Some("txt") => Ok(AssetType::Dataset),
@@ -108,6 +158,19 @@ pub fn determine_dataset_type(path: &Path) -> Result<AssetType> {
 }
 
 /// Determine the MIME type from a file path
+///
+/// Returns appropriate MIME types for ML-related file formats.
+///
+/// # Example
+///
+/// ```rust
+/// use atlas_core::c2pa::determine_format;
+/// use std::path::Path;
+///
+/// let mime = determine_format(Path::new("model.onnx"))?;
+/// assert_eq!(mime, "application/onnx");
+/// # Ok::<(), atlas_core::Error>(())
+/// ```
 pub fn determine_format(path: &Path) -> Result<String> {
     match path.extension().and_then(|ext| ext.to_str()) {
         Some("pb") => Ok("application/x-protobuf".to_string()),

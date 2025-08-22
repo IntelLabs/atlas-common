@@ -1,19 +1,26 @@
 //! Example demonstrating full functionality with all features
 //! Run with: cargo run --example full_example --features full
 
-use atlas_core::{
-    c2pa::{determine_asset_type, AssetKind, ManifestId, ManifestMetadata, ManifestType},
-    file::{safe_create_file, safe_open_file},
-    hash::{calculate_hash, HashAlgorithm, Hasher},
-    storage::{StorageConfig, StorageType},
-    validation::{ensure_c2pa_urn, extract_uuid_from_urn, validate_manifest_id},
-    Error, Result,
-};
-use std::io::{Read, Write};
-use std::path::Path;
-use tempfile::tempdir;
+#[cfg(not(feature = "all"))]
+fn main() {
+    eprintln!("This example requires the 'full' feature to be enabled.");
+    eprintln!("Run with: cargo run --example full_example --features all");
+}
 
-fn main() -> Result<()> {
+#[cfg(feature = "all")]
+fn main() -> atlas_core::Result<()> {
+    use atlas_core::{
+        c2pa::{determine_asset_type, AssetKind, ManifestId, ManifestMetadata, ManifestType},
+        file::{safe_create_file, safe_open_file},
+        hash::{calculate_hash, HashAlgorithm, Hasher},
+        storage::{StorageConfig, StorageType},
+        validation::{ensure_c2pa_urn, extract_uuid_from_urn, validate_manifest_id},
+        Error,
+    };
+    use std::io::{Read, Write};
+    use std::path::Path;
+    use tempfile::tempdir;
+
     println!("Atlas Core Full Example\n");
     println!("=======================\n");
 

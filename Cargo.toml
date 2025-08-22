@@ -5,10 +5,25 @@ authors = ["Marcin Spoczynski <marcin@spoczynski.com>"]
 edition = "2021"
 rust-version = "1.75"
 description = "Core functionality for Atlas ML provenance system"
-license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/atlas-core"
+homepage = "https://github.com/IntelLabs/atlas-core"
 repository = "https://github.com/IntelLabs/atlas-core"
+readme = "README.md"
+license = "Apache-2.0"
 keywords = ["c2pa", "ml", "provenance", "integrity", "hash"]
 categories = ["cryptography", "data-structures"]
+exclude = [
+    ".github/*",
+    "tests/*",
+    "benches/*",
+    ".gitignore",
+    "test.sh",
+]
+
+# Metadata for docs.rs
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 # Core dependencies (always included)
@@ -36,7 +51,7 @@ default = ["hash", "c2pa"]
 hash = ["dep:sha2", "dep:hex", "dep:subtle"]
 c2pa = ["dep:uuid", "dep:time"]
 storage = ["dep:async-trait"]
-validation = ["c2pa", "hash"]  # Validation needs both for full functionality
+validation = ["c2pa", "hash", "dep:uuid"]
 file-utils = []  # No additional deps needed
 
 # Async support for storage
@@ -55,6 +70,18 @@ name = "hash_benchmark"
 harness = false
 required-features = ["hash"]
 
+[[example]]
+name = "basic_hashing"
+required-features = ["hash"]
+
+[[example]]
+name = "c2pa_manifest"
+required-features = ["c2pa"]
+
+[[example]]
+name = "full_example"
+required-features = ["all"]
+
 [profile.release]
 opt-level = 3
 lto = true
@@ -63,3 +90,11 @@ codegen-units = 1
 [profile.dev]
 opt-level = 0
 debug = true
+
+[profile.bench]
+inherits = "release"
+
+[package.metadata.links]
+"CI/CD" = "https://github.com/IntelLabs/atlas-core/actions"
+"Bug Reports" = "https://github.com/IntelLabs/atlas-core/issues"
+"C2PA Specification" = "https://c2pa.org/specifications/"
