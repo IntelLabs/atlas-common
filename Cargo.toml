@@ -43,7 +43,7 @@ file-utils = []  # No additional deps needed
 async = ["storage", "dep:tokio", "dep:async-trait"]
 
 # Convenience feature for all functionality
-full = ["hash", "c2pa", "storage", "validation", "file-utils", "async"]
+all = ["hash", "c2pa", "storage", "validation", "file-utils", "async"]
 
 [dev-dependencies]
 tempfile = "3.8"
