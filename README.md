@@ -176,7 +176,7 @@ Run examples with:
 ```bash
 cargo run --example basic_hashing --features hash
 cargo run --example c2pa_manifest --features c2pa
-cargo run --example full_example --features full
+cargo run --example full_example --features all
 ```
 
 ## Benchmarks
