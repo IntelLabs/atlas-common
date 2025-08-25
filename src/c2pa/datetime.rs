@@ -16,7 +16,7 @@ impl DateTimeWrapper {
     /// # Example
     ///
     /// ```rust
-    /// use atlas_core::c2pa::DateTimeWrapper;
+    /// use atlas_common::c2pa::DateTimeWrapper;
     ///
     /// let now = DateTimeWrapper::now_utc();
     /// println!("Current time: {}", now.to_rfc3339());

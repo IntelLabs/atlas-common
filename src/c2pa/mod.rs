@@ -14,7 +14,7 @@
 //! # Example
 //!
 //! ```rust
-//! use atlas_core::c2pa::{
+//! use atlas_common::c2pa::{
 //!     ManifestId, ManifestMetadata, ManifestType,
 //!     determine_asset_type, AssetKind
 //! };
@@ -27,7 +27,7 @@
 //! // Determine asset type
 //! let model_path = Path::new("model.onnx");
 //! let asset_type = determine_asset_type(model_path, AssetKind::Model)?;
-//! # Ok::<(), atlas_core::Error>(())
+//! # Ok::<(), atlas_common::Error>(())
 //! ```
 mod asset;
 mod datetime;

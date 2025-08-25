@@ -6,7 +6,7 @@
 //! # Example
 //!
 //! ```rust
-//! use atlas_core::validation::{validate_manifest_id, ensure_c2pa_urn};
+//! use atlas_common::validation::{validate_manifest_id, ensure_c2pa_urn};
 //!
 //! // Validate a manifest ID
 //! validate_manifest_id("urn:c2pa:123e4567-e89b-12d3-a456-426614174000")?;
@@ -14,7 +14,7 @@
 //! // Ensure proper URN format
 //! let urn = ensure_c2pa_urn("my-custom-id");
 //! assert!(urn.starts_with("urn:c2pa:"));
-//! # Ok::<(), atlas_core::Error>(())
+//! # Ok::<(), atlas_common::Error>(())
 //! ```
 
 mod c2pa;

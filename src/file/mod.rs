@@ -13,7 +13,7 @@
 //! # Example
 //!
 //! ```rust,no_run
-//! use atlas_core::file::{safe_create_file, safe_open_file};
+//! use atlas_common::file::{safe_create_file, safe_open_file};
 //! use std::io::{Read, Write};
 //! use std::path::Path;
 //!
@@ -25,7 +25,7 @@
 //! let mut file = safe_open_file(Path::new("input.txt"), false)?;
 //! let mut contents = String::new();
 //! file.read_to_string(&mut contents)?;
-//! # Ok::<(), atlas_core::Error>(())
+//! # Ok::<(), atlas_common::Error>(())
 //! ```
 
 mod security;

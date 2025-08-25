@@ -13,7 +13,7 @@ use uuid::Uuid;
 /// # Example
 ///
 /// ```rust
-/// use atlas_core::validation::ensure_c2pa_urn;
+/// use atlas_common::validation::ensure_c2pa_urn;
 ///
 /// let urn1 = ensure_c2pa_urn("urn:c2pa:123e4567-e89b-12d3-a456-426614174000");
 /// let urn2 = ensure_c2pa_urn("123e4567-e89b-12d3-a456-426614174000");
@@ -38,12 +38,12 @@ pub fn ensure_c2pa_urn(id: &str) -> String {
 /// # Example
 ///
 /// ```rust
-/// use atlas_core::validation::extract_uuid_from_urn;
+/// use atlas_common::validation::extract_uuid_from_urn;
 ///
 /// let uuid = extract_uuid_from_urn(
 ///     "urn:c2pa:123e4567-e89b-12d3-a456-426614174000"
 /// )?;
-/// # Ok::<(), atlas_core::Error>(())
+/// # Ok::<(), atlas_common::Error>(())
 /// ```
 pub fn extract_uuid_from_urn(urn: &str) -> Result<Uuid> {
     let parts: Vec<&str> = urn.split(':').collect();

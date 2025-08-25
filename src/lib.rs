@@ -1,4 +1,4 @@
-//! # Atlas Core
+//! # Atlas Common
 //!
 //! Core functionality shared across Atlas components for machine learning provenance tracking.
 //!
@@ -26,7 +26,7 @@
 //! ## Example
 //!
 //! ```rust
-//! use atlas_core::{
+//! use atlas_common::{
 //!     hash::{calculate_hash, HashAlgorithm},
 //!     c2pa::{ManifestId, ManifestMetadata, ManifestType},
 //!     Result,
@@ -46,7 +46,7 @@
 //!         id: manifest_id.as_urn().to_string(),
 //!         name: "GPT-2 Fine-tuned Model".to_string(),
 //!         manifest_type: ManifestType::Model,
-//!         created_at: atlas_core::c2pa::DateTimeWrapper::now_utc().to_rfc3339(),
+//!         created_at: atlas_common::c2pa::DateTimeWrapper::now_utc().to_rfc3339(),
 //!         hash: Some(hash),
 //!         size: Some(1024 * 1024 * 50),
 //!         version: Some("1.0.0".to_string()),
@@ -56,7 +56,7 @@
 //! }
 //! ```
 
-#![doc(html_root_url = "https://docs.rs/atlas-core/0.1.0")]
+#![doc(html_root_url = "https://docs.rs/atlas-common/0.1.0")]
 
 // Common error types are always available
 pub mod error;
@@ -98,9 +98,9 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// # Example
 ///
 /// ```rust
-/// use atlas_core::init;
+/// use atlas_common::init;
 ///
-/// fn main() -> atlas_core::Result<()> {
+/// fn main() -> atlas_common::Result<()> {
 ///     init()?;
 ///     // Your code here
 ///     Ok(())

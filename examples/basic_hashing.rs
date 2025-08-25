@@ -1,10 +1,10 @@
 //! Example demonstrating hasxh functionality
 //! Run with: cargo run --example basic_hashing --features hash
 
-use atlas_core::hash::{
+use atlas_common::hash::{
     calculate_hash, calculate_hash_with_algorithm, HashAlgorithm, HashBuilder, Hasher,
 };
-use atlas_core::Result;
+use atlas_common::Result;
 
 fn main() -> Result<()> {
     // Basic hashing with default algorithm (SHA-384)
@@ -33,7 +33,7 @@ fn main() -> Result<()> {
     let data_to_verify = b"Important data";
     let expected_hash = calculate_hash(data_to_verify);
 
-    if atlas_core::hash::verify_hash(data_to_verify, &expected_hash) {
+    if atlas_common::hash::verify_hash(data_to_verify, &expected_hash) {
         println!("✓ Hash verification successful");
     } else {
         println!("✗ Hash verification failed");
@@ -42,7 +42,7 @@ fn main() -> Result<()> {
     // Combine multiple hashes
     let hash1 = calculate_hash(b"Dataset A");
     let hash2 = calculate_hash(b"Dataset B");
-    let combined = atlas_core::hash::combine_hashes(&[&hash1, &hash2])?;
+    let combined = atlas_common::hash::combine_hashes(&[&hash1, &hash2])?;
     println!("Combined hash: {}", combined);
 
     Ok(())

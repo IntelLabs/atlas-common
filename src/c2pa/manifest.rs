@@ -97,7 +97,7 @@ pub struct ManifestMetadata {
 /// # Example
 ///
 /// ```rust
-/// use atlas_core::c2pa::ManifestId;
+/// use atlas_common::c2pa::ManifestId;
 ///
 /// // Create new ID
 /// let id = ManifestId::new();
@@ -109,7 +109,7 @@ pub struct ManifestMetadata {
 ///
 /// // Create versioned ID
 /// let versioned = id.with_version(2, 1);
-/// # Ok::<(), atlas_core::Error>(())
+/// # Ok::<(), atlas_common::Error>(())
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ManifestId {
@@ -138,12 +138,12 @@ impl ManifestId {
     /// # Example
     ///
     /// ```rust
-    /// use atlas_core::c2pa::ManifestId;
+    /// use atlas_common::c2pa::ManifestId;
     ///
     /// let id = ManifestId::from_urn(
     ///     "urn:c2pa:123e4567-e89b-12d3-a456-426614174000:adobe:2_1"
     /// )?;
-    /// # Ok::<(), atlas_core::Error>(())
+    /// # Ok::<(), atlas_common::Error>(())
     /// ```
     pub fn from_urn(urn: &str) -> crate::error::Result<Self> {
         let parts: Vec<&str> = urn.split(':').collect();
@@ -202,7 +202,7 @@ impl ManifestId {
     /// # Example
     ///
     /// ```rust
-    /// use atlas_core::c2pa::ManifestId;
+    /// use atlas_common::c2pa::ManifestId;
     ///
     /// let id = ManifestId::new();
     /// let v2 = id.with_version(2, 1); // Version 2, reason 1

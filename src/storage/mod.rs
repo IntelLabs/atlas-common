@@ -7,7 +7,7 @@
 //! # Example
 //!
 //! ```rust
-//! use atlas_core::storage::{StorageConfig, StorageType};
+//! use atlas_common::storage::{StorageConfig, StorageType};
 //!
 //! let config = StorageConfig {
 //!     storage_type: StorageType::S3,

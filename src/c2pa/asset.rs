@@ -100,14 +100,14 @@ pub enum AssetKind {
 /// # Example
 ///
 /// ```rust
-/// use atlas_core::c2pa::{determine_asset_type, AssetKind};
+/// use atlas_common::c2pa::{determine_asset_type, AssetKind};
 /// use std::path::Path;
 ///
 /// let asset_type = determine_asset_type(
 ///     Path::new("model.onnx"),
 ///     AssetKind::Model
 /// )?;
-/// # Ok::<(), atlas_core::Error>(())
+/// # Ok::<(), atlas_common::Error>(())
 /// ```
 pub fn determine_asset_type(path: &Path, kind: AssetKind) -> Result<AssetType> {
     match kind {
@@ -164,12 +164,12 @@ pub fn determine_dataset_type(path: &Path) -> Result<AssetType> {
 /// # Example
 ///
 /// ```rust
-/// use atlas_core::c2pa::determine_format;
+/// use atlas_common::c2pa::determine_format;
 /// use std::path::Path;
 ///
 /// let mime = determine_format(Path::new("model.onnx"))?;
 /// assert_eq!(mime, "application/onnx");
-/// # Ok::<(), atlas_core::Error>(())
+/// # Ok::<(), atlas_common::Error>(())
 /// ```
 pub fn determine_format(path: &Path) -> Result<String> {
     match path.extension().and_then(|ext| ext.to_str()) {

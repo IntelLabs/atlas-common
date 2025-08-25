@@ -27,7 +27,7 @@ impl HashAlgorithm {
     /// # Example
     ///
     /// ```rust
-    /// use atlas_core::hash::HashAlgorithm;
+    /// use atlas_common::hash::HashAlgorithm;
     ///
     /// assert_eq!(HashAlgorithm::Sha256.as_str(), "sha256");
     /// ```
@@ -44,7 +44,7 @@ impl HashAlgorithm {
     /// # Example
     ///
     /// ```rust
-    /// use atlas_core::hash::HashAlgorithm;
+    /// use atlas_common::hash::HashAlgorithm;
     ///
     /// assert_eq!(HashAlgorithm::Sha256.output_size(), 32);
     /// assert_eq!(HashAlgorithm::Sha512.output_size(), 64);
@@ -62,7 +62,7 @@ impl HashAlgorithm {
     /// # Example
     ///
     /// ```rust
-    /// use atlas_core::hash::HashAlgorithm;
+    /// use atlas_common::hash::HashAlgorithm;
     ///
     /// assert_eq!(HashAlgorithm::Sha256.hex_length(), 64);
     /// ```
@@ -75,7 +75,7 @@ impl HashAlgorithm {
     /// # Example
     ///
     /// ```rust
-    /// use atlas_core::hash::HashAlgorithm;
+    /// use atlas_common::hash::HashAlgorithm;
     ///
     /// let hash = "a".repeat(64);
     /// assert!(HashAlgorithm::Sha256.validate_hash(&hash));
@@ -124,7 +124,7 @@ impl FromStr for HashAlgorithm {
 /// # Example
 ///
 /// ```rust
-/// use atlas_core::hash::{HashBuilder, HashAlgorithm};
+/// use atlas_common::hash::{HashBuilder, HashAlgorithm};
 ///
 /// let mut builder = HashBuilder::new(HashAlgorithm::Sha256);
 /// builder.update(b"part1");
@@ -195,7 +195,7 @@ impl HashBuilder {
 /// # Example
 ///
 /// ```rust
-/// use atlas_core::hash::{Hasher, HashAlgorithm};
+/// use atlas_common::hash::{Hasher, HashAlgorithm};
 ///
 /// let text = "Hello, World!";
 /// let hash = text.hash(HashAlgorithm::Sha256);

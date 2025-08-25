@@ -2,8 +2,8 @@
 
 #![cfg(feature = "c2pa")]
 
-use atlas_core::c2pa::*;
-use atlas_core::Result;
+use atlas_common::c2pa::*;
+use atlas_common::Result;
 use std::path::Path;
 
 #[test]

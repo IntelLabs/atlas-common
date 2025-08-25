@@ -14,14 +14,14 @@
 //! # Example
 //!
 //! ```rust
-//! use atlas_core::hash::{calculate_hash, verify_hash, HashAlgorithm};
+//! use atlas_common::hash::{calculate_hash, verify_hash, HashAlgorithm};
 //!
 //! let data = b"important data";
 //! let hash = calculate_hash(data);
 //! assert!(verify_hash(data, &hash));
 //!
 //! // Use specific algorithm
-//! let sha256_hash = atlas_core::hash::calculate_hash_with_algorithm(
+//! let sha256_hash = atlas_common::hash::calculate_hash_with_algorithm(
 //!     data,
 //!     &HashAlgorithm::Sha256
 //! );
@@ -55,7 +55,7 @@ pub fn calculate_hash_with_algorithm(data: &[u8], algorithm: &HashAlgorithm) -> 
 /// # Example
 ///
 /// ```rust
-/// use atlas_core::hash::calculate_hash;
+/// use atlas_common::hash::calculate_hash;
 ///
 /// let data = b"test data";
 /// let hash = calculate_hash(data);
@@ -70,7 +70,7 @@ pub fn calculate_file_hash(path: impl AsRef<Path>) -> Result<String> {
 /// # Example
 ///
 /// ```rust
-/// use atlas_core::hash::{calculate_hash_with_algorithm, HashAlgorithm};
+/// use atlas_common::hash::{calculate_hash_with_algorithm, HashAlgorithm};
 ///
 /// let data = b"test data";
 /// let sha256_hash = calculate_hash_with_algorithm(data, &HashAlgorithm::Sha256);
@@ -100,12 +100,12 @@ pub fn calculate_file_hash_with_algorithm(
 /// # Example
 ///
 /// ```rust
-/// use atlas_core::hash::{calculate_hash, combine_hashes};
+/// use atlas_common::hash::{calculate_hash, combine_hashes};
 ///
 /// let hash1 = calculate_hash(b"data1");
 /// let hash2 = calculate_hash(b"data2");
 /// let combined = combine_hashes(&[&hash1, &hash2])?;
-/// # Ok::<(), atlas_core::Error>(())
+/// # Ok::<(), atlas_common::Error>(())
 /// ```
 pub fn combine_hashes(hashes: &[&str]) -> Result<String> {
     combine_hashes_with_algorithm(hashes, &HashAlgorithm::Sha384)
@@ -133,7 +133,7 @@ pub fn combine_hashes_with_algorithm(hashes: &[&str], algorithm: &HashAlgorithm)
 /// # Example
 ///
 /// ```rust
-/// use atlas_core::hash::{calculate_hash, verify_hash};
+/// use atlas_common::hash::{calculate_hash, verify_hash};
 ///
 /// let data = b"test data";
 /// let hash = calculate_hash(data);
@@ -190,7 +190,7 @@ pub fn verify_file_hash_with_algorithm(
 /// # Example
 ///
 /// ```rust
-/// use atlas_core::hash::{detect_hash_algorithm, HashAlgorithm};
+/// use atlas_common::hash::{detect_hash_algorithm, HashAlgorithm};
 ///
 /// let sha256_hash = "a".repeat(64);
 /// assert_eq!(detect_hash_algorithm(&sha256_hash), HashAlgorithm::Sha256);
@@ -209,7 +209,7 @@ pub fn detect_hash_algorithm(hash: &str) -> HashAlgorithm {
 /// # Example
 ///
 /// ```rust
-/// use atlas_core::hash::{get_hash_length, HashAlgorithm};
+/// use atlas_common::hash::{get_hash_length, HashAlgorithm};
 ///
 /// assert_eq!(get_hash_length(&HashAlgorithm::Sha256), 64);
 /// assert_eq!(get_hash_length(&HashAlgorithm::Sha384), 96);
@@ -236,7 +236,7 @@ pub fn get_hash_length(algorithm: &HashAlgorithm) -> usize {
 /// # Example
 ///
 /// ```rust
-/// use atlas_core::hash::validate_hash_format;
+/// use atlas_common::hash::validate_hash_format;
 ///
 /// assert!(validate_hash_format(&"a".repeat(96)).is_ok());
 /// assert!(validate_hash_format("not-a-hash").is_err());

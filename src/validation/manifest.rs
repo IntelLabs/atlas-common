@@ -84,8 +84,8 @@ fn validate_c2pa_urn_format(urn: &str) -> Result<()> {
 /// # Example
 ///
 /// ```rust
-/// use atlas_core::c2pa::{ManifestMetadata, ManifestType, DateTimeWrapper};
-/// use atlas_core::validation::validate_manifest_metadata;
+/// use atlas_common::c2pa::{ManifestMetadata, ManifestType, DateTimeWrapper};
+/// use atlas_common::validation::validate_manifest_metadata;
 ///
 /// let metadata = ManifestMetadata {
 ///     id: "urn:c2pa:123e4567-e89b-12d3-a456-426614174000".to_string(),
@@ -98,7 +98,7 @@ fn validate_c2pa_urn_format(urn: &str) -> Result<()> {
 /// };
 ///
 /// validate_manifest_metadata(&metadata)?;
-/// # Ok::<(), atlas_core::Error>(())
+/// # Ok::<(), atlas_common::Error>(())
 /// ```
 pub fn validate_manifest_metadata(metadata: &crate::c2pa::ManifestMetadata) -> Result<()> {
     validate_manifest_id(&metadata.id)?;

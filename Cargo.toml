@@ -1,13 +1,13 @@
 [package]
-name = "atlas-core"
+name = "atlas-common"
 version = "0.1.0"
-authors = ["Marcin Spoczynski <marcin@spoczynski.com>"]
+authors = ["Marcin Spoczynski <marcin@spoczynski.com>", "Marcela Melara <marcela.melara@intel.com"]
 edition = "2021"
 rust-version = "1.75"
-description = "Core functionality for Atlas ML provenance system"
-documentation = "https://docs.rs/atlas-core"
-homepage = "https://github.com/IntelLabs/atlas-core"
-repository = "https://github.com/IntelLabs/atlas-core"
+description = "Common functionality for Atlas ML provenance system"
+documentation = "https://docs.rs/atlas-common"
+homepage = "https://github.com/IntelLabs/atlas-common"
+repository = "https://github.com/IntelLabs/atlas-common"
 readme = "README.md"
 license = "Apache-2.0"
 keywords = ["c2pa", "ml", "provenance", "integrity", "hash"]
@@ -95,6 +95,6 @@ debug = true
 inherits = "release"
 
 [package.metadata.links]
-"CI/CD" = "https://github.com/IntelLabs/atlas-core/actions"
-"Bug Reports" = "https://github.com/IntelLabs/atlas-core/issues"
+"CI/CD" = "https://github.com/IntelLabs/atlas-common/actions"
+"Bug Reports" = "https://github.com/IntelLabs/atlas-common/issues"
 "C2PA Specification" = "https://c2pa.org/specifications/"

@@ -2,9 +2,9 @@
 
 #![cfg(feature = "validation")]
 
-use atlas_core::c2pa::{DateTimeWrapper, ManifestMetadata, ManifestType};
-use atlas_core::validation::*;
-use atlas_core::Result;
+use atlas_common::c2pa::{DateTimeWrapper, ManifestMetadata, ManifestType};
+use atlas_common::validation::*;
+use atlas_common::Result;
 use uuid::Uuid;
 
 #[test]

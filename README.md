@@ -1,15 +1,15 @@
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/IntelLabs/atlas-core/badge)](https://scorecard.dev/viewer/?uri=github.com/IntelLabs/atlas-core)
-![GitHub License](https://img.shields.io/github/license/IntelLabs/atlas-core)
-[![Crates.io](https://img.shields.io/crates/v/atlas-core.svg)](https://crates.io/crates/atlas-core)
-[![Documentation](https://docs.rs/atlas-core/badge.svg)](https://docs.rs/atlas-core)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/IntelLabs/atlas-common/badge)](https://scorecard.dev/viewer/?uri=github.com/IntelLabs/atlas-common)
+![GitHub License](https://img.shields.io/github/license/IntelLabs/atlas-common)
+[![Crates.io](https://img.shields.io/crates/v/atlas-common.svg)](https://crates.io/crates/atlas-common)
+[![Documentation](https://docs.rs/atlas-common/badge.svg)](https://docs.rs/atlas-common)
 
-# Atlas Core
+# Atlas Common
 
 ⚠️ **Disclaimer**: This project is currently in active development. The code is **not stable** and **not intended for use in production environments**. Interfaces, features, and behaviors are subject to change without notice.
 
 Core functionality for machine learning provenance tracking with C2PA (Coalition for Content Provenance and Authenticity) support.
 
-Atlas Core provides essential building blocks for creating content authenticity systems that track the provenance of machine learning models, datasets, and related assets throughout their lifecycle.
+Atlas Common provides essential building blocks for creating content authenticity systems that track the provenance of machine learning models, datasets, and related assets throughout their lifecycle.
 
 ## Features
 
@@ -26,7 +26,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-atlas-core = "0.1.0"
+atlas-common = "0.1.0"
 ```
 
 ### Feature Flags
@@ -43,7 +43,7 @@ To use specific features:
 
 ```toml
 [dependencies]
-atlas-core = { version = "0.1.0", features = ["all"] }
+atlas-common = { version = "0.1.0", features = ["all"] }
 ```
 
 ## Quick Start
@@ -51,7 +51,7 @@ atlas-core = { version = "0.1.0", features = ["all"] }
 ### Hashing
 
 ```rust
-use atlas_core::hash::{calculate_hash, verify_hash, HashAlgorithm};
+use atlas_common::hash::{calculate_hash, verify_hash, HashAlgorithm};
 
 // Calculate hash with default algorithm (SHA-384)
 let data = b"important data";
@@ -67,7 +67,7 @@ let sha256_hash = calculate_hash_with_algorithm(data, &HashAlgorithm::Sha256);
 ### C2PA Manifests
 
 ```rust
-use atlas_core::c2pa::{ManifestId, ManifestMetadata, ManifestType, DateTimeWrapper};
+use atlas_common::c2pa::{ManifestId, ManifestMetadata, ManifestType, DateTimeWrapper};
 
 // Create a manifest ID
 let manifest_id = ManifestId::new();
@@ -88,7 +88,7 @@ let metadata = ManifestMetadata {
 ### Asset Type Detection
 
 ```rust
-use atlas_core::c2pa::{determine_asset_type, AssetKind};
+use atlas_common::c2pa::{determine_asset_type, AssetKind};
 use std::path::Path;
 
 let model_path = Path::new("model.onnx");
@@ -99,7 +99,7 @@ let asset_type = determine_asset_type(model_path, AssetKind::Model)?;
 ### Secure File Operations
 
 ```rust
-use atlas_core::file::{safe_create_file, safe_open_file};
+use atlas_common::file::{safe_create_file, safe_open_file};
 use std::io::{Read, Write};
 
 // Safely create a file (blocks symlink attacks)
@@ -115,7 +115,7 @@ file.read_to_string(&mut contents)?;
 ### Validation
 
 ```rust
-use atlas_core::validation::{validate_manifest_id, ensure_c2pa_urn};
+use atlas_common::validation::{validate_manifest_id, ensure_c2pa_urn};
 
 // Validate a manifest ID
 validate_manifest_id("urn:c2pa:123e4567-e89b-12d3-a456-426614174000")?;
@@ -130,7 +130,7 @@ assert!(urn.starts_with("urn:c2pa:"));
 ### Incremental Hashing
 
 ```rust
-use atlas_core::hash::{HashBuilder, HashAlgorithm};
+use atlas_common::hash::{HashBuilder, HashAlgorithm};
 
 let mut builder = HashBuilder::new(HashAlgorithm::Sha256);
 builder.update(b"chunk1");
@@ -142,7 +142,7 @@ let hash = builder.finalize();
 ### Hash Trait
 
 ```rust
-use atlas_core::hash::{Hasher, HashAlgorithm};
+use atlas_common::hash::{Hasher, HashAlgorithm};
 
 let text = "Hello, World!";
 let hash = text.hash(HashAlgorithm::Sha512);
@@ -154,7 +154,7 @@ let hash2 = bytes.hash_default(); // Uses SHA-384
 ### Storage Backend
 
 ```rust
-use atlas_core::storage::{StorageConfig, StorageType};
+use atlas_common::storage::{StorageConfig, StorageType};
 
 let config = StorageConfig {
     storage_type: StorageType::S3,

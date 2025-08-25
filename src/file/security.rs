@@ -23,11 +23,11 @@ use std::path::{Path, PathBuf};
 /// # Example
 ///
 /// ```rust,no_run
-/// use atlas_core::file::safe_file_path;
+/// use atlas_common::file::safe_file_path;
 /// use std::path::Path;
 ///
 /// let safe_path = safe_file_path(Path::new("data.txt"), false)?;
-/// # Ok::<(), atlas_core::Error>(())
+/// # Ok::<(), atlas_common::Error>(())
 /// ```
 pub fn safe_file_path(path: &Path, allow_symlinks: bool) -> Result<PathBuf> {
     if path.exists() {
@@ -97,11 +97,11 @@ fn is_safe_symlink_target(target: &Path) -> bool {
 /// # Example
 ///
 /// ```rust,no_run
-/// use atlas_core::file::safe_open_file;
+/// use atlas_common::file::safe_open_file;
 /// use std::path::Path;
 ///
 /// let file = safe_open_file(Path::new("data.txt"), false)?;
-/// # Ok::<(), atlas_core::Error>(())
+/// # Ok::<(), atlas_common::Error>(())
 /// ```
 pub fn safe_open_file(path: &Path, allow_symlinks: bool) -> Result<File> {
     let safe_path = safe_file_path(path, allow_symlinks)?;
@@ -122,11 +122,11 @@ pub fn safe_open_file(path: &Path, allow_symlinks: bool) -> Result<File> {
 /// # Example
 ///
 /// ```rust,no_run
-/// use atlas_core::file::safe_create_file;
+/// use atlas_common::file::safe_create_file;
 /// use std::path::Path;
 ///
 /// let file = safe_create_file(Path::new("output.txt"), false)?;
-/// # Ok::<(), atlas_core::Error>(())
+/// # Ok::<(), atlas_common::Error>(())
 /// ```
 pub fn safe_create_file(path: &Path, allow_symlinks: bool) -> Result<File> {
     let safe_path = safe_file_path(path, allow_symlinks)?;

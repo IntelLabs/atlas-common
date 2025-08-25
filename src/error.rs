@@ -67,7 +67,7 @@ pub enum Error {
 /// # Example
 ///
 /// ```rust
-/// use atlas_core::Result;
+/// use atlas_common::Result;
 ///
 /// fn process_data() -> Result<String> {
 ///     Ok("processed".to_string())
@@ -84,7 +84,7 @@ impl Error {
     /// # Example
     ///
     /// ```rust
-    /// use atlas_core::Error;
+    /// use atlas_common::Error;
     ///
     /// let error = Error::Io(std::io::Error::new(
     ///     std::io::ErrorKind::TimedOut,
@@ -104,7 +104,7 @@ impl Error {
     /// # Example
     ///
     /// ```rust
-    /// use atlas_core::Error;
+    /// use atlas_common::Error;
     ///
     /// let error = Error::NotFound("manifest".to_string());
     /// assert_eq!(error.error_code(), "NOT_FOUND");

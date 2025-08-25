@@ -8,8 +8,8 @@ fn main() {
 }
 
 #[cfg(feature = "all")]
-fn main() -> atlas_core::Result<()> {
-    use atlas_core::{
+fn main() -> atlas_common::Result<()> {
+    use atlas_common::{
         c2pa::{determine_asset_type, AssetKind, ManifestId, ManifestMetadata, ManifestType},
         file::{safe_create_file, safe_open_file},
         hash::{calculate_hash, HashAlgorithm, Hasher},
@@ -153,14 +153,14 @@ fn main() -> atlas_core::Result<()> {
         id: manifest_id.as_urn().to_string(),
         name: "ResNet-50 Transfer Learning Model".to_string(),
         manifest_type: ManifestType::Model,
-        created_at: atlas_core::c2pa::DateTimeWrapper::now_utc().to_rfc3339(),
+        created_at: atlas_common::c2pa::DateTimeWrapper::now_utc().to_rfc3339(),
         hash: Some(model_hash),
         size: Some(98765432),
         version: Some("2.1.0".to_string()),
     };
 
     // Validate the metadata
-    atlas_core::validation::validate_manifest_metadata(&metadata)?;
+    atlas_common::validation::validate_manifest_metadata(&metadata)?;
     println!("✓ Manifest metadata validated");
 
     // Serialize to JSON
@@ -177,9 +177,9 @@ fn main() -> atlas_core::Result<()> {
     let test_hash_sha512 = "c".repeat(128);
 
     for hash in &[test_hash_sha256, test_hash_sha384, test_hash_sha512] {
-        match atlas_core::hash::validate_hash_format(hash) {
+        match atlas_common::hash::validate_hash_format(hash) {
             Ok(_) => {
-                let algo = atlas_core::hash::detect_hash_algorithm(hash);
+                let algo = atlas_common::hash::detect_hash_algorithm(hash);
                 println!("✓ Valid {} hash (length: {})", algo, hash.len());
             }
             Err(e) => println!("✗ Invalid hash: {}", e),
@@ -188,7 +188,7 @@ fn main() -> atlas_core::Result<()> {
 
     // Invalid hash
     let invalid_hash = "xyz123";
-    match atlas_core::hash::validate_hash_format(invalid_hash) {
+    match atlas_common::hash::validate_hash_format(invalid_hash) {
         Ok(_) => println!("✗ Should have rejected invalid hash"),
         Err(_) => println!("✓ Correctly rejected invalid hash format"),
     }
