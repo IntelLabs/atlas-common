@@ -7,7 +7,7 @@
 
 ⚠️ **Disclaimer**: This project is currently in active development. The code is **not stable** and **not intended for use in production environments**. Interfaces, features, and behaviors are subject to change without notice.
 
-Core functionality for machine learning provenance tracking with C2PA (Coalition for Content Provenance and Authenticity) support.
+Core functionality for machine learning provenance tracking with [C2PA](https://spec.c2pa.org/specifications/specifications/2.2/index.html) (Coalition for Content Provenance and Authenticity) support.
 
 Atlas Common provides essential building blocks for creating content authenticity systems that track the provenance of machine learning models, datasets, and related assets throughout their lifecycle.
 
