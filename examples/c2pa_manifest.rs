@@ -1,11 +1,11 @@
 //! Example demonstrating C2PA manifest functionality
 //! Run with: cargo run --example c2pa_manifest --features c2pa
 
-use atlas_core::c2pa::{
+use atlas_common::c2pa::{
     determine_asset_type, determine_format, AssetKind, DateTimeWrapper, ManifestId,
     ManifestMetadata, ManifestType,
 };
-use atlas_core::Result;
+use atlas_common::Result;
 use std::path::Path;
 
 fn main() -> Result<()> {

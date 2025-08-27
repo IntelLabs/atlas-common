@@ -1,19 +1,26 @@
 //! Example demonstrating full functionality with all features
 //! Run with: cargo run --example full_example --features full
 
-use atlas_core::{
-    c2pa::{determine_asset_type, AssetKind, ManifestId, ManifestMetadata, ManifestType},
-    file::{safe_create_file, safe_open_file},
-    hash::{calculate_hash, HashAlgorithm, Hasher},
-    storage::{StorageConfig, StorageType},
-    validation::{ensure_c2pa_urn, extract_uuid_from_urn, validate_manifest_id},
-    Error, Result,
-};
-use std::io::{Read, Write};
-use std::path::Path;
-use tempfile::tempdir;
+#[cfg(not(feature = "all"))]
+fn main() {
+    eprintln!("This example requires the 'all' feature to be enabled.");
+    eprintln!("Run with: cargo run --example full_example --features all");
+}
 
-fn main() -> Result<()> {
+#[cfg(feature = "all")]
+fn main() -> atlas_common::Result<()> {
+    use atlas_common::{
+        c2pa::{determine_asset_type, AssetKind, ManifestId, ManifestMetadata, ManifestType},
+        file::{safe_create_file, safe_open_file},
+        hash::{calculate_hash, HashAlgorithm, Hasher},
+        storage::{StorageConfig, StorageType},
+        validation::{ensure_c2pa_urn, extract_uuid_from_urn, validate_manifest_id},
+        Error,
+    };
+    use std::io::{Read, Write};
+    use std::path::Path;
+    use tempfile::tempdir;
+
     println!("Atlas Core Full Example\n");
     println!("=======================\n");
 
@@ -146,14 +153,14 @@ fn main() -> Result<()> {
         id: manifest_id.as_urn().to_string(),
         name: "ResNet-50 Transfer Learning Model".to_string(),
         manifest_type: ManifestType::Model,
-        created_at: atlas_core::c2pa::DateTimeWrapper::now_utc().to_rfc3339(),
+        created_at: atlas_common::c2pa::DateTimeWrapper::now_utc().to_rfc3339(),
         hash: Some(model_hash),
         size: Some(98765432),
         version: Some("2.1.0".to_string()),
     };
 
     // Validate the metadata
-    atlas_core::validation::validate_manifest_metadata(&metadata)?;
+    atlas_common::validation::validate_manifest_metadata(&metadata)?;
     println!("✓ Manifest metadata validated");
 
     // Serialize to JSON
@@ -170,9 +177,9 @@ fn main() -> Result<()> {
     let test_hash_sha512 = "c".repeat(128);
 
     for hash in &[test_hash_sha256, test_hash_sha384, test_hash_sha512] {
-        match atlas_core::hash::validate_hash_format(hash) {
+        match atlas_common::hash::validate_hash_format(hash) {
             Ok(_) => {
-                let algo = atlas_core::hash::detect_hash_algorithm(hash);
+                let algo = atlas_common::hash::detect_hash_algorithm(hash);
                 println!("✓ Valid {} hash (length: {})", algo, hash.len());
             }
             Err(e) => println!("✗ Invalid hash: {}", e),
@@ -181,7 +188,7 @@ fn main() -> Result<()> {
 
     // Invalid hash
     let invalid_hash = "xyz123";
-    match atlas_core::hash::validate_hash_format(invalid_hash) {
+    match atlas_common::hash::validate_hash_format(invalid_hash) {
         Ok(_) => println!("✗ Should have rejected invalid hash"),
         Err(_) => println!("✓ Correctly rejected invalid hash format"),
     }

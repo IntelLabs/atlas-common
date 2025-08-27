@@ -1,7 +1,31 @@
-//! # Hash Module
+//! Cryptographic hash functionality
 //!
-//! Provides cryptographic hash functions supporting SHA-256, SHA-384, and SHA-512.
-
+//! This module provides secure cryptographic hashing with support for SHA-256, SHA-384, and SHA-512.
+//! It includes utilities for file hashing, hash verification, and incremental hashing.
+//!
+//! # Features
+//!
+//! - Multiple hash algorithms (SHA-256, SHA-384, SHA-512)
+//! - File and data hashing
+//! - Constant-time hash comparison for security
+//! - Incremental hashing with `HashBuilder`
+//! - Hash combination for merkle-tree-like structures
+//!
+//! # Example
+//!
+//! ```rust
+//! use atlas_common::hash::{calculate_hash, verify_hash, HashAlgorithm};
+//!
+//! let data = b"important data";
+//! let hash = calculate_hash(data);
+//! assert!(verify_hash(data, &hash));
+//!
+//! // Use specific algorithm
+//! let sha256_hash = atlas_common::hash::calculate_hash_with_algorithm(
+//!     data,
+//!     &HashAlgorithm::Sha256
+//! );
+//! ```
 mod algorithms;
 
 pub use algorithms::{HashAlgorithm, HashBuilder, Hasher};
@@ -26,12 +50,32 @@ pub fn calculate_hash_with_algorithm(data: &[u8], algorithm: &HashAlgorithm) -> 
     }
 }
 
-/// Calculate file hash using the default algorithm (SHA-384)
+/// Calculate hash using the default algorithm (SHA-384)
+///
+/// # Example
+///
+/// ```rust
+/// use atlas_common::hash::calculate_hash;
+///
+/// let data = b"test data";
+/// let hash = calculate_hash(data);
+/// assert_eq!(hash.len(), 96); // SHA-384 produces 96 hex characters
+/// ```
 pub fn calculate_file_hash(path: impl AsRef<Path>) -> Result<String> {
     calculate_file_hash_with_algorithm(path, &HashAlgorithm::Sha384)
 }
 
-/// Calculate file hash with specific algorithm
+/// Calculate hash with a specific algorithm
+///
+/// # Example
+///
+/// ```rust
+/// use atlas_common::hash::{calculate_hash_with_algorithm, HashAlgorithm};
+///
+/// let data = b"test data";
+/// let sha256_hash = calculate_hash_with_algorithm(data, &HashAlgorithm::Sha256);
+/// assert_eq!(sha256_hash.len(), 64);
+/// ```
 pub fn calculate_file_hash_with_algorithm(
     path: impl AsRef<Path>,
     algorithm: &HashAlgorithm,
@@ -46,11 +90,32 @@ pub fn calculate_file_hash_with_algorithm(
 }
 
 /// Combine multiple hashes into a single hash
+///
+/// Useful for creating merkle-tree-like structures or combining multiple asset hashes.
+///
+/// # Errors
+///
+/// Returns an error if any hash string is invalid hex.
+///
+/// # Example
+///
+/// ```rust
+/// use atlas_common::hash::{calculate_hash, combine_hashes};
+///
+/// let hash1 = calculate_hash(b"data1");
+/// let hash2 = calculate_hash(b"data2");
+/// let combined = combine_hashes(&[&hash1, &hash2])?;
+/// # Ok::<(), atlas_common::Error>(())
+/// ```
 pub fn combine_hashes(hashes: &[&str]) -> Result<String> {
     combine_hashes_with_algorithm(hashes, &HashAlgorithm::Sha384)
 }
 
-/// Combine hashes with specific algorithm
+/// Combine hashes with a specific algorithm
+///
+/// # Errors
+///
+/// Returns an error if any hash string is invalid hex.
 pub fn combine_hashes_with_algorithm(hashes: &[&str], algorithm: &HashAlgorithm) -> Result<String> {
     let mut combined = Vec::new();
     for hash in hashes {
@@ -60,13 +125,28 @@ pub fn combine_hashes_with_algorithm(hashes: &[&str], algorithm: &HashAlgorithm)
     Ok(calculate_hash_with_algorithm(&combined, algorithm))
 }
 
-/// Verify data against expected hash
+/// Verify data against an expected hash
+///
+/// Automatically detects the hash algorithm from the hash length.
+/// Uses constant-time comparison to prevent timing attacks.
+///
+/// # Example
+///
+/// ```rust
+/// use atlas_common::hash::{calculate_hash, verify_hash};
+///
+/// let data = b"test data";
+/// let hash = calculate_hash(data);
+/// assert!(verify_hash(data, &hash));
+/// ```
 pub fn verify_hash(data: &[u8], expected_hash: &str) -> bool {
     let algorithm = detect_hash_algorithm(expected_hash);
     verify_hash_with_algorithm(data, expected_hash, &algorithm)
 }
 
-/// Verify hash with specific algorithm
+/// Verify hash with a specific algorithm
+///
+/// Uses constant-time comparison to prevent timing attacks.
 pub fn verify_hash_with_algorithm(
     data: &[u8],
     expected_hash: &str,
@@ -77,12 +157,20 @@ pub fn verify_hash_with_algorithm(
 }
 
 /// Verify file hash
+///
+/// # Errors
+///
+/// Returns an error if the file cannot be read.
 pub fn verify_file_hash(path: impl AsRef<Path>, expected_hash: &str) -> Result<bool> {
     let algorithm = detect_hash_algorithm(expected_hash);
     verify_file_hash_with_algorithm(path, expected_hash, &algorithm)
 }
 
-/// Verify file hash with specific algorithm
+/// Verify file hash with a specific algorithm
+///
+/// # Errors
+///
+/// Returns an error if the file cannot be read.
 pub fn verify_file_hash_with_algorithm(
     path: impl AsRef<Path>,
     expected_hash: &str,
@@ -93,6 +181,20 @@ pub fn verify_file_hash_with_algorithm(
 }
 
 /// Detect hash algorithm from hash length
+///
+/// Returns:
+/// - SHA-256 for 64 character hashes
+/// - SHA-384 for 96 character hashes (default)
+/// - SHA-512 for 128 character hashes
+///
+/// # Example
+///
+/// ```rust
+/// use atlas_common::hash::{detect_hash_algorithm, HashAlgorithm};
+///
+/// let sha256_hash = "a".repeat(64);
+/// assert_eq!(detect_hash_algorithm(&sha256_hash), HashAlgorithm::Sha256);
+/// ```
 pub fn detect_hash_algorithm(hash: &str) -> HashAlgorithm {
     match hash.len() {
         64 => HashAlgorithm::Sha256,
@@ -102,7 +204,17 @@ pub fn detect_hash_algorithm(hash: &str) -> HashAlgorithm {
     }
 }
 
-/// Get expected hash length for algorithm
+/// Get expected hash length in hex characters for an algorithm
+///
+/// # Example
+///
+/// ```rust
+/// use atlas_common::hash::{get_hash_length, HashAlgorithm};
+///
+/// assert_eq!(get_hash_length(&HashAlgorithm::Sha256), 64);
+/// assert_eq!(get_hash_length(&HashAlgorithm::Sha384), 96);
+/// assert_eq!(get_hash_length(&HashAlgorithm::Sha512), 128);
+/// ```
 pub fn get_hash_length(algorithm: &HashAlgorithm) -> usize {
     match algorithm {
         HashAlgorithm::Sha256 => 64,
@@ -112,6 +224,23 @@ pub fn get_hash_length(algorithm: &HashAlgorithm) -> usize {
 }
 
 /// Validate hash format
+///
+/// Checks that a hash string:
+/// - Contains only hexadecimal characters
+/// - Has a valid length (64, 96, or 128 characters)
+///
+/// # Errors
+///
+/// Returns an error if the hash format is invalid.
+///
+/// # Example
+///
+/// ```rust
+/// use atlas_common::hash::validate_hash_format;
+///
+/// assert!(validate_hash_format(&"a".repeat(96)).is_ok());
+/// assert!(validate_hash_format("not-a-hash").is_err());
+/// ```
 pub fn validate_hash_format(hash: &str) -> Result<()> {
     if !hash.chars().all(|c| c.is_ascii_hexdigit()) {
         return Err(Error::Validation(

@@ -1,6 +1,6 @@
 //! Benchmarks for hash functionality
 
-use atlas_core::hash::{
+use atlas_common::hash::{
     calculate_hash, calculate_hash_with_algorithm, combine_hashes, verify_hash, HashAlgorithm,
     HashBuilder, Hasher,
 };
@@ -160,7 +160,7 @@ fn bench_default_vs_specific(c: &mut Criterion) {
 }
 
 fn bench_algorithm_detection(c: &mut Criterion) {
-    use atlas_core::hash::detect_hash_algorithm;
+    use atlas_common::hash::detect_hash_algorithm;
 
     let sha256_hash = "a".repeat(64);
     let sha384_hash = "b".repeat(96);
@@ -180,7 +180,7 @@ fn bench_algorithm_detection(c: &mut Criterion) {
 }
 
 fn bench_hash_validation(c: &mut Criterion) {
-    use atlas_core::hash::validate_hash_format;
+    use atlas_common::hash::validate_hash_format;
 
     let valid_hash = "a".repeat(96);
     let invalid_hash = "xyz123";

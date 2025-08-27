@@ -1,7 +1,18 @@
+//! Manifest validation utilities
+
 use crate::error::{Error, Result};
 use uuid::Uuid;
 
 /// Validate manifest ID format
+///
+/// Accepts:
+/// - C2PA URN format: `urn:c2pa:UUID[:claim_generator[:version_reason]]`
+/// - Plain UUID: `123e4567-e89b-12d3-a456-426614174000`
+/// - Alphanumeric IDs with hyphens and underscores
+///
+/// # Errors
+///
+/// Returns an error if the ID format is invalid.
 pub fn validate_manifest_id(id: &str) -> Result<()> {
     if id.is_empty() {
         return Err(Error::Validation("Manifest ID cannot be empty".to_string()));
@@ -24,7 +35,7 @@ pub fn validate_manifest_id(id: &str) -> Result<()> {
     Ok(())
 }
 
-/// Validate C2PA URN format
+/// Validate C2PA URN format (internal helper)
 fn validate_c2pa_urn_format(urn: &str) -> Result<()> {
     let parts: Vec<&str> = urn.split(':').collect();
 
@@ -60,6 +71,35 @@ fn validate_c2pa_urn_format(urn: &str) -> Result<()> {
 }
 
 /// Validate manifest metadata
+///
+/// Checks that:
+/// - ID is valid
+/// - Name is not empty
+/// - Hash format is valid (if present)
+///
+/// # Errors
+///
+/// Returns an error if validation fails.
+///
+/// # Example
+///
+/// ```rust
+/// use atlas_common::c2pa::{ManifestMetadata, ManifestType, DateTimeWrapper};
+/// use atlas_common::validation::validate_manifest_metadata;
+///
+/// let metadata = ManifestMetadata {
+///     id: "urn:c2pa:123e4567-e89b-12d3-a456-426614174000".to_string(),
+///     name: "My Model".to_string(),
+///     manifest_type: ManifestType::Model,
+///     created_at: DateTimeWrapper::now_utc().to_rfc3339(),
+///     hash: Some("a".repeat(96)),
+///     size: Some(1024),
+///     version: Some("1.0.0".to_string()),
+/// };
+///
+/// validate_manifest_metadata(&metadata)?;
+/// # Ok::<(), atlas_common::Error>(())
+/// ```
 pub fn validate_manifest_metadata(metadata: &crate::c2pa::ManifestMetadata) -> Result<()> {
     validate_manifest_id(&metadata.id)?;
 

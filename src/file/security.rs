@@ -1,3 +1,5 @@
+//! Security-focused file operations
+
 use crate::error::{Error, Result};
 use std::fs::{File, OpenOptions};
 use std::path::{Path, PathBuf};
@@ -8,6 +10,25 @@ use std::path::{Path, PathBuf};
 /// - Unauthorized symlink traversal
 /// - Hard link attacks
 /// - Access to restricted directories
+///
+/// # Arguments
+///
+/// * `path` - Path to validate
+/// * `allow_symlinks` - Whether to allow symlinks
+///
+/// # Errors
+///
+/// Returns an error if the path is unsafe.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use atlas_common::file::safe_file_path;
+/// use std::path::Path;
+///
+/// let safe_path = safe_file_path(Path::new("data.txt"), false)?;
+/// # Ok::<(), atlas_common::Error>(())
+/// ```
 pub fn safe_file_path(path: &Path, allow_symlinks: bool) -> Result<PathBuf> {
     if path.exists() {
         // Check for symlinks
@@ -52,6 +73,8 @@ pub fn safe_file_path(path: &Path, allow_symlinks: bool) -> Result<PathBuf> {
 }
 
 /// Validates that a symlink target is in an allowed location
+///
+/// Currently allows /tmp and /var/app/data directories.
 fn is_safe_symlink_target(target: &Path) -> bool {
     if let Ok(canonical) = target.canonicalize() {
         canonical.starts_with("/tmp") || canonical.starts_with("/var/app/data")
@@ -61,18 +84,68 @@ fn is_safe_symlink_target(target: &Path) -> bool {
 }
 
 /// Safely opens a file for reading with security checks
+///
+/// # Arguments
+///
+/// * `path` - Path to the file
+/// * `allow_symlinks` - Whether to allow symlinks
+///
+/// # Errors
+///
+/// Returns an error if the file cannot be opened safely.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use atlas_common::file::safe_open_file;
+/// use std::path::Path;
+///
+/// let file = safe_open_file(Path::new("data.txt"), false)?;
+/// # Ok::<(), atlas_common::Error>(())
+/// ```
 pub fn safe_open_file(path: &Path, allow_symlinks: bool) -> Result<File> {
     let safe_path = safe_file_path(path, allow_symlinks)?;
     File::open(&safe_path).map_err(Error::from)
 }
 
 /// Safely creates a file for writing with security checks
+///
+/// # Arguments
+///
+/// * `path` - Path to the file
+/// * `allow_symlinks` - Whether to allow symlinks
+///
+/// # Errors
+///
+/// Returns an error if the file cannot be created safely.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use atlas_common::file::safe_create_file;
+/// use std::path::Path;
+///
+/// let file = safe_create_file(Path::new("output.txt"), false)?;
+/// # Ok::<(), atlas_common::Error>(())
+/// ```
 pub fn safe_create_file(path: &Path, allow_symlinks: bool) -> Result<File> {
     let safe_path = safe_file_path(path, allow_symlinks)?;
     File::create(&safe_path).map_err(Error::from)
 }
 
 /// Creates `OpenOptions` for a file with security validation
+///
+/// Returns configured `OpenOptions` that can be further customized
+/// before opening the file.
+///
+/// # Arguments
+///
+/// * `path` - Path to the file
+/// * `allow_symlinks` - Whether to allow symlinks
+///
+/// # Errors
+///
+/// Returns an error if the path is unsafe.
 pub fn safe_open_options(path: &Path, allow_symlinks: bool) -> Result<OpenOptions> {
     let _safe_path = safe_file_path(path, allow_symlinks)?;
     Ok(OpenOptions::new())

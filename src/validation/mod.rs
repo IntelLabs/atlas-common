@@ -1,7 +1,21 @@
 //! Validation utilities for manifests and hashes
 //!
-//! This module provides validation functions for C2PA manifests,
+//! This module provides comprehensive validation functions for C2PA manifests,
 //! URNs, hashes, and other data structures used in the Atlas system.
+//!
+//! # Example
+//!
+//! ```rust
+//! use atlas_common::validation::{validate_manifest_id, ensure_c2pa_urn};
+//!
+//! // Validate a manifest ID
+//! validate_manifest_id("urn:c2pa:123e4567-e89b-12d3-a456-426614174000")?;
+//!
+//! // Ensure proper URN format
+//! let urn = ensure_c2pa_urn("my-custom-id");
+//! assert!(urn.starts_with("urn:c2pa:"));
+//! # Ok::<(), atlas_common::Error>(())
+//! ```
 
 mod c2pa;
 mod hash;

@@ -1,190 +1,225 @@
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/IntelLabs/atlas-common/badge)](https://scorecard.dev/viewer/?uri=github.com/IntelLabs/atlas-common)
+![GitHub License](https://img.shields.io/github/license/IntelLabs/atlas-common)
+[![Crates.io](https://img.shields.io/crates/v/atlas-common.svg)](https://crates.io/crates/atlas-common)
+[![Documentation](https://docs.rs/atlas-common/badge.svg)](https://docs.rs/atlas-common)
 
-![GitHub License](https://img.shields.io/github/license/IntelLabs/il-opensource-template)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/IntelLabs/il-opensource-template/badge)](https://scorecard.dev/viewer/?uri=github.com/IntelLabs/il-opensource-template)
-<!-- UNCOMMENT AS NEEDED
-[![Unit Tests](https://github.com/IntelLabs/ConvAssist/actions/workflows/run_unittests.yaml/badge.svg?branch=covassist-cleanup)](https://github.com/IntelLabs/ConvAssist/actions/workflows/run_unittests.yaml)
-[![pytorch](https://img.shields.io/badge/PyTorch-v2.4.1-green?logo=pytorch)](https://pytorch.org/get-started/locally/)
-![python-support](https://img.shields.io/badge/Python-3.12-3?logo=python)
--->
+# Atlas Common
 
-# Atlas Core
+⚠️ **Disclaimer**: This project is currently in active development. The code is **not stable** and **not intended for use in production environments**. Interfaces, features, and behaviors are subject to change without notice.
 
-Core functionality library for the Atlas ML provenance system, providing cryptographic hashing, C2PA manifest management, storage abstractions, and validation utilities.
+Core functionality for machine learning provenance tracking with [C2PA](https://spec.c2pa.org/specifications/specifications/2.2/index.html) (Coalition for Content Provenance and Authenticity) support.
+
+Atlas Common provides essential building blocks for creating content authenticity systems that track the provenance of machine learning models, datasets, and related assets throughout their lifecycle.
 
 ## Features
 
-Atlas Core is designed with modularity in mind. You can use only the features you need:
-
-- **`hash`** (default): Cryptographic hash functions supporting SHA-256, SHA-384, and SHA-512
-- **`c2pa`** (default): C2PA manifest and asset type definitions for ML artifacts
-- **`storage`**: Abstract storage backend interface for manifest persistence
-- **`validation`**: Validation utilities for manifests, URNs, and hashes
-- **`file-utils`**: Secure file operations with symlink and hard link protection
-- **`async`**: Async support for storage operations
-- **`all`**: Enable all features
+- 🔐 **Cryptographic Hashing**: SHA-256/384/512 with constant-time comparison
+- 📋 **C2PA Metadata**: Types and utilities for C2PA manifest management  
+- 💾 **Storage Abstractions**: Backend-agnostic storage interfaces
+- ✅ **Validation**: Validation for manifests, URNs, and hashes
+- 🛡️ **Secure File Operations**: Protection against symlink and hardlink attacks
+- ⚡ **Async Support**: Optional async/await for storage operations
 
 ## Installation
 
-Add to your `Cargo.toml`:
+Add this to your `Cargo.toml`:
 
 ```toml
-# Default features (hash + c2pa)
-atlas-core = "0.1"
-
-# Only hashing functionality
-atlas-core = { version = "0.1", default-features = false, features = ["hash"] }
-
-# Only C2PA types
-atlas-core = { version = "0.1", default-features = false, features = ["c2pa"] }
-
-# Everything
-atlas-core = { version = "0.1", features = ["full"] }
+[dependencies]
+atlas-common = "0.1.0"
 ```
 
-## Usage Examples
+### Feature Flags
+
+- `hash` (default): Cryptographic hash functions
+- `c2pa` (default): C2PA manifest and asset types
+- `storage`: Storage backend abstractions
+- `validation`: Validation utilities
+- `file-utils`: Secure file operation utilities
+- `async`: Async support for storage operations
+- `full`: Enable all features
+
+To use specific features:
+
+```toml
+[dependencies]
+atlas-common = { version = "0.1.0", features = ["all"] }
+```
+
+## Quick Start
 
 ### Hashing
 
 ```rust
-use atlas_core::hash::{calculate_hash, HashAlgorithm, Hasher};
+use atlas_common::hash::{calculate_hash, verify_hash, HashAlgorithm};
 
-// Basic hashing with default algorithm (SHA-384)
-let data = b"Model weights v1.0";
+// Calculate hash with default algorithm (SHA-384)
+let data = b"important data";
 let hash = calculate_hash(data);
 
-// Hash with specific algorithm
-let sha256_hash = data.hash(HashAlgorithm::Sha256);
-
 // Verify hash
-assert!(atlas_core::hash::verify_hash(data, &hash));
+assert!(verify_hash(data, &hash));
+
+// Use specific algorithm
+let sha256_hash = calculate_hash_with_algorithm(data, &HashAlgorithm::Sha256);
 ```
 
 ### C2PA Manifests
 
 ```rust
-use atlas_core::c2pa::{ManifestId, ManifestType, AssetType, AssetKind};
-use atlas_core::c2pa::determine_asset_type;
-use std::path::Path;
+use atlas_common::c2pa::{ManifestId, ManifestMetadata, ManifestType, DateTimeWrapper};
 
-// Create manifest ID
+// Create a manifest ID
 let manifest_id = ManifestId::new();
 println!("URN: {}", manifest_id.as_urn());
 
-// Detect asset type
-let model_path = Path::new("model.onnx");
-let asset_type = determine_asset_type(model_path, AssetKind::Model)?;
-assert_eq!(asset_type, AssetType::ModelOnnx);
+// Create manifest metadata
+let metadata = ManifestMetadata {
+    id: manifest_id.as_urn().to_string(),
+    name: "GPT-2 Fine-tuned Model".to_string(),
+    manifest_type: ManifestType::Model,
+    created_at: DateTimeWrapper::now_utc().to_rfc3339(),
+    hash: Some(calculate_hash(b"model data")),
+    size: Some(1024 * 1024 * 50), // 50 MB
+    version: Some("1.0.0".to_string()),
+};
 ```
 
-### Validation
+### Asset Type Detection
 
 ```rust
-use atlas_core::validation::{validate_manifest_id, ensure_c2pa_urn};
+use atlas_common::c2pa::{determine_asset_type, AssetKind};
+use std::path::Path;
 
-// Validate manifest ID
-let urn = "urn:c2pa:123e4567-e89b-12d3-a456-426614174000";
-validate_manifest_id(urn)?;
-
-// Ensure proper URN format
-let formatted = ensure_c2pa_urn("my-model-123");
-// Returns: urn:c2pa:<generated-uuid>
+let model_path = Path::new("model.onnx");
+let asset_type = determine_asset_type(model_path, AssetKind::Model)?;
+// Returns AssetType::ModelOnnx
 ```
 
 ### Secure File Operations
 
 ```rust
-use atlas_core::file::{safe_create_file, safe_open_file};
-use std::io::Write;
+use atlas_common::file::{safe_create_file, safe_open_file};
+use std::io::{Read, Write};
 
-// Safely create a file (prevents symlink attacks)
-let mut file = safe_create_file(path, false)?;
-file.write_all(b"Secure content")?;
+// Safely create a file (blocks symlink attacks)
+let mut file = safe_create_file(Path::new("output.txt"), false)?;
+file.write_all(b"secure data")?;
 
 // Safely read a file
-let mut file = safe_open_file(path, false)?;
+let mut file = safe_open_file(Path::new("input.txt"), false)?;
+let mut contents = String::new();
+file.read_to_string(&mut contents)?;
 ```
 
-### Storage Backends
+### Validation
 
 ```rust
-use atlas_core::storage::{StorageBackend, StorageConfig, StorageType};
+use atlas_common::validation::{validate_manifest_id, ensure_c2pa_urn};
+
+// Validate a manifest ID
+validate_manifest_id("urn:c2pa:123e4567-e89b-12d3-a456-426614174000")?;
+
+// Ensure proper URN format
+let urn = ensure_c2pa_urn("my-custom-id");
+assert!(urn.starts_with("urn:c2pa:"));
+```
+
+## Advanced Usage
+
+### Incremental Hashing
+
+```rust
+use atlas_common::hash::{HashBuilder, HashAlgorithm};
+
+let mut builder = HashBuilder::new(HashAlgorithm::Sha256);
+builder.update(b"chunk1");
+builder.update(b"chunk2");
+builder.update(b"chunk3");
+let hash = builder.finalize();
+```
+
+### Hash Trait
+
+```rust
+use atlas_common::hash::{Hasher, HashAlgorithm};
+
+let text = "Hello, World!";
+let hash = text.hash(HashAlgorithm::Sha512);
+
+let bytes = b"raw bytes";
+let hash2 = bytes.hash_default(); // Uses SHA-384
+```
+
+### Storage Backend
+
+```rust
+use atlas_common::storage::{StorageConfig, StorageType};
 
 let config = StorageConfig {
-    storage_type: StorageType::Filesystem,
-    path: Some("/var/atlas/manifests".to_string()),
+    storage_type: StorageType::S3,
+    url: Some("s3://my-bucket/manifests".to_string()),
     ..Default::default()
 };
-
-// Implement StorageBackend trait for your storage system
 ```
 
-## Module Organization
+## Examples
 
-```
-src/
-├── lib.rs           # Main entry point with feature gates
-├── error.rs         # Common error types (always available)
-├── hash/            # Cryptographic hashing (feature: hash)
-├── c2pa/            # C2PA types and utilities (feature: c2pa)
-├── storage/         # Storage abstractions (feature: storage)
-├── validation/      # Validation utilities (feature: validation)
-└── file/            # Secure file operations (feature: file-utils)
-```
+The repository includes several examples demonstrating various features:
 
-## Building
+- `basic_hashing` - Hash operations and verification
+- `c2pa_manifest` - Working with C2PA manifests
+- `full_example` - Complete demonstration of all features
+
+Run examples with:
 
 ```bash
-# Build with default features (hash + c2pa)
-cargo build
-
-# Build with all features
-cargo build --all-features
-
-# Build with specific features
-cargo build --features storage,validation
+cargo run --example basic_hashing --features hash
+cargo run --example c2pa_manifest --features c2pa
+cargo run --example full_example --features all
 ```
 
-## Running Examples
+## Benchmarks
 
-Examples require specific features to be enabled:
+Performance benchmarks are available for hash operations:
 
 ```bash
-# Simple example with default features
-cargo run --example simple
-
-# Basic hashing example (requires 'hash' feature)
-cargo run --example basic_hashing
-
-# C2PA manifest example (requires 'c2pa' feature)  
-cargo run --example c2pa_manifest
-
-# Full functionality example (requires 'full' feature)
-cargo run --example full_example --features full
+cargo bench --features hash
 ```
 
-## Testing
+## Security Considerations
 
-```bash
-# Run all tests
-cargo test --all-features
+- **Constant-time comparison**: Hash verification uses constant-time comparison to prevent timing attacks
+- **Path validation**: File operations validate paths to prevent symlink and hardlink attacks
+- **Input validation**: All inputs are validated to prevent injection attacks
+- **Secure defaults**: SHA-384 is the default hash algorithm for optimal security/performance balance
 
-# Test specific feature
-cargo test --features hash
-cargo test --features c2pa
+## Supported Formats
 
-# Run with coverage
-cargo tarpaulin --all-features
-```
+### Model Formats
+- TensorFlow: `.pb`, `.savedmodel`, `.tf`
+- PyTorch: `.pt`, `.pth`, `.pytorch`
+- ONNX: `.onnx`
+- OpenVINO: `.bin`, `.xml`
+- Keras/HDF5: `.h5`, `.keras`, `.hdf5`
 
-## Security Features
-
-- **Symlink Protection**: File operations validate symlinks to prevent directory traversal
-- **Hard Link Detection**: Detects files with multiple hard links on Unix systems
-- **Constant-Time Comparison**: Hash verification uses constant-time comparison to prevent timing attacks
-- **Input Validation**: Comprehensive validation for all C2PA URNs and manifest IDs
+### Dataset Formats
+- Tabular: `.csv`, `.tsv`, `.txt`
+- JSON: `.json`, `.jsonl`
+- Big Data: `.parquet`, `.orc`, `.avro`
+- TensorFlow: `.tfrecord`, `.tfrec`
+- NumPy: `.npy`, `.npz`
 
 ## License
 
-Licensed under:
+This project is licensed under the Apache 2.0 License - see the LICENSE file for details.
 
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request

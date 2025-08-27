@@ -2,8 +2,8 @@
 
 #![cfg(feature = "hash")]
 
-use atlas_core::hash::*;
-use atlas_core::Result;
+use atlas_common::hash::*;
+use atlas_common::Result;
 use std::fs;
 use tempfile::tempdir;
 
@@ -79,7 +79,7 @@ fn test_hash_builder() {
 
 #[test]
 fn test_hasher_trait() {
-    use atlas_core::hash::Hasher;
+    use atlas_common::hash::Hasher;
 
     let data = "test string";
     let hash1 = data.hash(HashAlgorithm::Sha256);
