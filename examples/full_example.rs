@@ -3,7 +3,7 @@
 
 #[cfg(not(feature = "all"))]
 fn main() {
-    eprintln!("This example requires the 'full' feature to be enabled.");
+    eprintln!("This example requires the 'all' feature to be enabled.");
     eprintln!("Run with: cargo run --example full_example --features all");
 }
 
