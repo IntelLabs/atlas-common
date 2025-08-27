@@ -59,10 +59,10 @@ pub enum AssetType {
     #[serde(rename = "c2pa.types.generator")]
     Generator,
 
-    // Formats
+    // SerializationFormats
     /// NumPy array format
-    #[serde(rename = "c2pa.types.format.numpy")]
-    FormatNumpy,
+    #[serde(rename = "c2pa.types.numpy")]
+    SerializationNumpy
 
     /// Python pickle format
     #[serde(rename = "c2pa.types.format.pickle")]
