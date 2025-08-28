@@ -118,7 +118,7 @@ fn test_model_type_detection() -> Result<()> {
         ("model.bin", AssetType::ModelOpenVino),
         ("model.h5", AssetType::Model),
         ("model.keras", AssetType::Model),
-        ("model.npy", AssetType::FormatNumpy),
+        ("model.npy", AssetType::SerializationNumpy),
         ("model.pkl", AssetType::FormatPickle),
         ("model.unknown", AssetType::Model),
     ];
@@ -224,7 +224,7 @@ fn test_asset_type_serialization() -> Result<()> {
         (AssetType::Dataset, r#""c2pa.types.dataset""#),
         (AssetType::ModelOnnx, r#""c2pa.types.model.onnx""#),
         (AssetType::Software, r#""c2pa.types.software""#),
-        (AssetType::FormatNumpy, r#""c2pa.types.format.numpy""#),
+        (AssetType::SerializationNumpy, r#""c2pa.types.numpy""#),
     ];
 
     for (asset_type, expected_json) in test_cases {

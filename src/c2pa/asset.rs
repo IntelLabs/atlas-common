@@ -62,7 +62,7 @@ pub enum AssetType {
     // SerializationFormats
     /// NumPy array format
     #[serde(rename = "c2pa.types.numpy")]
-    SerializationNumpy
+    SerializationNumpy,
 
     /// Python pickle format
     #[serde(rename = "c2pa.types.format.pickle")]
@@ -130,7 +130,7 @@ pub fn determine_model_type(path: &Path) -> Result<AssetType> {
         Some("onnx") => Ok(AssetType::ModelOnnx),
         Some("bin") | Some("xml") => Ok(AssetType::ModelOpenVino),
         Some("h5") | Some("keras") | Some("hdf5") => Ok(AssetType::Model),
-        Some("npy") | Some("npz") => Ok(AssetType::FormatNumpy),
+        Some("npy") | Some("npz") => Ok(AssetType::SerializationNumpy),
         Some("pkl") | Some("pickle") => Ok(AssetType::FormatPickle),
         Some("protobuf") | Some("proto") => Ok(AssetType::FormatProtobuf),
         Some(_) => Ok(AssetType::Model),
