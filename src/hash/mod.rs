@@ -29,11 +29,8 @@
 mod algorithms;
 
 pub use algorithms::{
-    calculate_hash_optimized, detect_hash_algorithm as detect_algorithm_from_algorithms,
-    get_hardware_capabilities, validate_hash_format as validate_format_from_algorithms,
-    verify_hash as verify_from_algorithms,
-    verify_hash_with_algorithm as verify_with_algorithm_from_algorithms, BatchHasher,
-    HardwareCapabilities, HashAlgorithm, HashBuilder, Hasher,
+    calculate_hash_optimized, get_hardware_capabilities, BatchHasher, HardwareCapabilities,
+    HashAlgorithm, HashBuilder, Hasher,
 };
 
 use crate::error::{Error, Result};

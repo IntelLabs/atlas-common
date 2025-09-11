@@ -1,4 +1,5 @@
 use crate::error::{Error, Result};
+use crate::hash::calculate_hash_with_algorithm;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::str::FromStr;
@@ -361,34 +362,6 @@ impl Hasher for String {
     }
 }
 
-/// Calculate hash using default algorithm (SHA-384)
-pub fn calculate_hash(data: &[u8]) -> String {
-    calculate_hash_with_algorithm(data, &HashAlgorithm::default())
-}
-
-/// Calculate hash with specified algorithm
-pub fn calculate_hash_with_algorithm(data: &[u8], algorithm: &HashAlgorithm) -> String {
-    use sha2::Digest;
-
-    match algorithm {
-        HashAlgorithm::Sha256 => {
-            let mut hasher = sha2::Sha256::new();
-            hasher.update(data);
-            hex::encode(hasher.finalize())
-        }
-        HashAlgorithm::Sha384 => {
-            let mut hasher = sha2::Sha384::new();
-            hasher.update(data);
-            hex::encode(hasher.finalize())
-        }
-        HashAlgorithm::Sha512 => {
-            let mut hasher = sha2::Sha512::new();
-            hasher.update(data);
-            hex::encode(hasher.finalize())
-        }
-    }
-}
-
 /// Calculate hash with hardware optimization
 ///
 /// Automatically selects the best optimization strategy:
@@ -522,44 +495,6 @@ pub fn get_hardware_capabilities() -> HardwareCapabilities {
     HardwareCapabilities::detect()
 }
 
-/// Detect hash algorithm from hash string length
-pub fn detect_hash_algorithm(hash: &str) -> HashAlgorithm {
-    match hash.len() {
-        64 => HashAlgorithm::Sha256,
-        96 => HashAlgorithm::Sha384,
-        128 => HashAlgorithm::Sha512,
-        _ => HashAlgorithm::default(),
-    }
-}
-
-/// Validate hash format
-pub fn validate_hash_format(hash: &str) -> Result<()> {
-    let algorithm = detect_hash_algorithm(hash);
-    if algorithm.validate_hash(hash) {
-        Ok(())
-    } else {
-        Err(Error::InvalidFormat(format!(
-            "Invalid hash format: expected {} characters for {}, got {}",
-            algorithm.hex_length(),
-            algorithm.as_str(),
-            hash.len()
-        )))
-    }
-}
-
-/// Verify data matches hash
-pub fn verify_hash(data: &[u8], hash: &str) -> bool {
-    let algorithm = detect_hash_algorithm(hash);
-    let computed = calculate_hash_with_algorithm(data, &algorithm);
-    computed == hash
-}
-
-/// Verify hash with specific algorithm
-pub fn verify_hash_with_algorithm(data: &[u8], hash: &str, algorithm: &HashAlgorithm) -> bool {
-    let computed = calculate_hash_with_algorithm(data, algorithm);
-    computed == hash
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -628,16 +563,6 @@ mod tests {
     }
 
     #[test]
-    fn test_calculate_hash() {
-        let data = b"test data";
-        let hash = calculate_hash(data);
-        assert_eq!(hash.len(), 96); // SHA384 default
-
-        let direct_hash = calculate_hash_with_algorithm(data, &HashAlgorithm::Sha384);
-        assert_eq!(hash, direct_hash);
-    }
-
-    #[test]
     fn test_hardware_capabilities() {
         let caps = get_hardware_capabilities();
         assert!(caps.cpu_cores > 0);
@@ -659,47 +584,6 @@ mod tests {
             let expected = input.hash(HashAlgorithm::Sha256);
             assert_eq!(*result, expected);
         }
-    }
-
-    #[test]
-    fn test_hash_detection() {
-        assert_eq!(
-            detect_hash_algorithm(&"a".repeat(64)),
-            HashAlgorithm::Sha256
-        );
-        assert_eq!(
-            detect_hash_algorithm(&"b".repeat(96)),
-            HashAlgorithm::Sha384
-        );
-        assert_eq!(
-            detect_hash_algorithm(&"c".repeat(128)),
-            HashAlgorithm::Sha512
-        );
-    }
-
-    #[test]
-    fn test_hash_validation() {
-        let valid_sha256 = "a".repeat(64);
-        assert!(validate_hash_format(&valid_sha256).is_ok());
-
-        let invalid_hash = "xyz";
-        assert!(validate_hash_format(invalid_hash).is_err());
-    }
-
-    #[test]
-    fn test_hash_verification() {
-        let data = b"test verification data";
-        let hash = calculate_hash(data);
-
-        assert!(verify_hash(data, &hash));
-        assert!(!verify_hash(b"different data", &hash));
-
-        let sha256_hash = calculate_hash_with_algorithm(data, &HashAlgorithm::Sha256);
-        assert!(verify_hash_with_algorithm(
-            data,
-            &sha256_hash,
-            &HashAlgorithm::Sha256
-        ));
     }
 
     #[test]
