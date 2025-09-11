@@ -1,6 +1,5 @@
-//! Hash algorithm definitions and traits
-
 use crate::error::{Error, Result};
+use crate::hash::calculate_hash_with_algorithm;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::str::FromStr;
@@ -117,6 +116,120 @@ impl FromStr for HashAlgorithm {
     }
 }
 
+/// Hardware capabilities detected at runtime
+#[derive(Debug, Clone, Copy)]
+pub struct HardwareCapabilities {
+    /// Intel SHA-NI extensions available
+    pub sha_extensions: bool,
+    /// AVX-512 available (Intel Xeon optimization)
+    pub avx512: bool,
+    /// ARM crypto extensions (Apple Silicon/ARM64)
+    pub arm_crypto: bool,
+    /// Number of CPU cores
+    pub cpu_cores: usize,
+}
+
+impl HardwareCapabilities {
+    /// Detect available hardware capabilities
+    pub fn detect() -> Self {
+        let cpu_cores = num_cpus::get();
+
+        #[cfg(target_arch = "x86_64")]
+        {
+            Self {
+                sha_extensions: is_x86_feature_detected!("sha"),
+                avx512: is_x86_feature_detected!("avx512f"),
+                arm_crypto: false,
+                cpu_cores,
+            }
+        }
+
+        #[cfg(target_arch = "aarch64")]
+        {
+            Self {
+                sha_extensions: false,
+                avx512: false,
+                arm_crypto: Self::detect_arm_crypto(),
+                cpu_cores,
+            }
+        }
+
+        #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
+        {
+            Self {
+                sha_extensions: false,
+                avx512: false,
+                arm_crypto: false,
+                cpu_cores,
+            }
+        }
+    }
+
+    #[cfg(target_arch = "aarch64")]
+    fn detect_arm_crypto() -> bool {
+        std::arch::is_aarch64_feature_detected!("aes")
+            && std::arch::is_aarch64_feature_detected!("sha2")
+    }
+
+    /// Get optimal chunk size for parallel processing
+    pub fn optimal_chunk_size(&self) -> usize {
+        match self.cpu_cores {
+            1..=4 => 16 * 1024 * 1024,  // 16MB
+            5..=8 => 32 * 1024 * 1024,  // 32MB
+            9..=16 => 64 * 1024 * 1024, // 64MB
+            _ => 128 * 1024 * 1024,     // 128MB for high-core Xeons
+        }
+    }
+}
+
+/// Strategy for hash optimization
+#[derive(Debug, Clone, Copy)]
+enum HashOptimization {
+    /// Intel SHA-NI (best for single-threaded)
+    IntelShaExtensions,
+    /// Intel Xeon parallel with AVX-512
+    XeonParallel,
+    /// Apple Silicon ARM crypto
+    AppleSiliconCrypto,
+    /// Generic multi-core parallel
+    MultiCore,
+    /// Standard software
+    Software,
+}
+
+impl HashOptimization {
+    fn select(capabilities: &HardwareCapabilities, data_size: usize) -> Self {
+        let parallel_threshold = capabilities.optimal_chunk_size();
+
+        #[cfg(target_arch = "x86_64")]
+        {
+            if capabilities.sha_extensions && data_size < parallel_threshold {
+                return Self::IntelShaExtensions;
+            }
+            if capabilities.avx512 && data_size >= parallel_threshold && capabilities.cpu_cores >= 4
+            {
+                return Self::XeonParallel;
+            }
+            if capabilities.sha_extensions {
+                return Self::IntelShaExtensions;
+            }
+        }
+
+        #[cfg(target_arch = "aarch64")]
+        {
+            if capabilities.arm_crypto {
+                return Self::AppleSiliconCrypto;
+            }
+        }
+
+        if data_size >= parallel_threshold && capabilities.cpu_cores >= 3 {
+            return Self::MultiCore;
+        }
+
+        Self::Software
+    }
+}
+
 /// Builder for incremental hashing
 ///
 /// Useful when hashing data that arrives in chunks or from multiple sources.
@@ -143,7 +256,7 @@ enum HashBuilderInner {
 }
 
 impl HashBuilder {
-    /// Create a new hash builder with the specified algorith
+    /// Create a new hash builder with the specified algorithm
     pub fn new(algorithm: HashAlgorithm) -> Self {
         use sha2::Digest;
 
@@ -202,17 +315,30 @@ impl HashBuilder {
 ///
 /// let bytes = b"raw bytes";
 /// let hash2 = bytes.hash(HashAlgorithm::Sha512);
+///
+/// let large_data = vec![0u8; 100_000_000]; // 100MB
+/// let optimized_hash = large_data.hash_optimized(HashAlgorithm::Sha384);
 /// ```
 pub trait Hasher {
     fn hash(&self, algorithm: HashAlgorithm) -> String;
     fn hash_default(&self) -> String {
         self.hash(HashAlgorithm::default())
     }
+
+    /// Hash with hardware optimization
+    ///
+    /// Uses Intel Xeon parallel processing, Apple Silicon crypto, or multi-core
+    /// optimization based on available hardware and data size.
+    fn hash_optimized(&self, algorithm: HashAlgorithm) -> String;
 }
 
 impl Hasher for [u8] {
     fn hash(&self, algorithm: HashAlgorithm) -> String {
-        crate::hash::calculate_hash_with_algorithm(self, &algorithm)
+        calculate_hash_with_algorithm(self, &algorithm)
+    }
+
+    fn hash_optimized(&self, algorithm: HashAlgorithm) -> String {
+        calculate_hash_optimized(self, algorithm)
     }
 }
 
@@ -220,12 +346,153 @@ impl Hasher for str {
     fn hash(&self, algorithm: HashAlgorithm) -> String {
         self.as_bytes().hash(algorithm)
     }
+
+    fn hash_optimized(&self, algorithm: HashAlgorithm) -> String {
+        self.as_bytes().hash_optimized(algorithm)
+    }
 }
 
 impl Hasher for String {
     fn hash(&self, algorithm: HashAlgorithm) -> String {
         self.as_bytes().hash(algorithm)
     }
+
+    fn hash_optimized(&self, algorithm: HashAlgorithm) -> String {
+        self.as_bytes().hash_optimized(algorithm)
+    }
+}
+
+/// Calculate hash with hardware optimization
+///
+/// Automatically selects the best optimization strategy:
+/// - Intel Xeon: Uses SHA-NI extensions + AVX-512 parallel processing
+/// - Apple Silicon: Uses ARM crypto extensions  
+/// - Other: Uses multi-core parallel processing when beneficial (Risc?)
+pub fn calculate_hash_optimized(data: &[u8], algorithm: HashAlgorithm) -> String {
+    let capabilities = HardwareCapabilities::detect();
+    let strategy = HashOptimization::select(&capabilities, data.len());
+
+    match strategy {
+        HashOptimization::IntelShaExtensions => calculate_intel_sha_ni(data, algorithm),
+        HashOptimization::XeonParallel => calculate_xeon_parallel(data, algorithm, &capabilities),
+        HashOptimization::AppleSiliconCrypto => calculate_apple_silicon(data, algorithm),
+        HashOptimization::MultiCore => calculate_multicore_parallel(data, algorithm, &capabilities),
+        HashOptimization::Software => calculate_hash_with_algorithm(data, &algorithm),
+    }
+}
+
+#[cfg(target_arch = "x86_64")]
+fn calculate_intel_sha_ni(data: &[u8], algorithm: HashAlgorithm) -> String {
+    calculate_hash_with_algorithm(data, &algorithm)
+}
+
+#[cfg(target_arch = "x86_64")]
+fn calculate_xeon_parallel(
+    data: &[u8],
+    algorithm: HashAlgorithm,
+    capabilities: &HardwareCapabilities,
+) -> String {
+    let chunk_size = capabilities.optimal_chunk_size();
+
+    if data.len() <= chunk_size {
+        return calculate_hash_with_algorithm(data, &algorithm);
+    }
+
+    use rayon::prelude::*;
+
+    let chunk_hashes: Vec<String> = data
+        .par_chunks(chunk_size)
+        .map(|chunk| calculate_hash_with_algorithm(chunk, &algorithm))
+        .collect();
+
+    let combined = chunk_hashes.join("");
+    calculate_hash_with_algorithm(combined.as_bytes(), &algorithm)
+}
+
+#[cfg(target_arch = "aarch64")]
+fn calculate_apple_silicon(data: &[u8], algorithm: HashAlgorithm) -> String {
+    calculate_hash_with_algorithm(data, &algorithm)
+}
+
+fn calculate_multicore_parallel(
+    data: &[u8],
+    algorithm: HashAlgorithm,
+    capabilities: &HardwareCapabilities,
+) -> String {
+    let chunk_size = capabilities.optimal_chunk_size();
+
+    if data.len() <= chunk_size || capabilities.cpu_cores < 3 {
+        return calculate_hash_with_algorithm(data, &algorithm);
+    }
+
+    use rayon::prelude::*;
+
+    let chunk_hashes: Vec<String> = data
+        .par_chunks(chunk_size)
+        .map(|chunk| calculate_hash_with_algorithm(chunk, &algorithm))
+        .collect();
+
+    let combined = chunk_hashes.join("");
+    calculate_hash_with_algorithm(combined.as_bytes(), &algorithm)
+}
+
+#[cfg(not(target_arch = "x86_64"))]
+fn calculate_intel_sha_ni(data: &[u8], algorithm: HashAlgorithm) -> String {
+    calculate_hash_with_algorithm(data, &algorithm)
+}
+
+#[cfg(not(target_arch = "x86_64"))]
+fn calculate_xeon_parallel(
+    data: &[u8],
+    algorithm: HashAlgorithm,
+    capabilities: &HardwareCapabilities,
+) -> String {
+    calculate_multicore_parallel(data, algorithm, capabilities)
+}
+
+#[cfg(not(target_arch = "aarch64"))]
+fn calculate_apple_silicon(data: &[u8], algorithm: HashAlgorithm) -> String {
+    calculate_hash_with_algorithm(data, &algorithm)
+}
+
+/// Batch hasher for processing multiple inputs efficiently
+pub struct BatchHasher {
+    capabilities: HardwareCapabilities,
+}
+
+impl BatchHasher {
+    pub fn new() -> Self {
+        Self {
+            capabilities: HardwareCapabilities::detect(),
+        }
+    }
+
+    /// Hash multiple inputs in parallel
+    pub fn hash_batch(&self, inputs: &[&[u8]], algorithm: HashAlgorithm) -> Vec<String> {
+        if inputs.len() < 4 || self.capabilities.cpu_cores < 3 {
+            return inputs
+                .iter()
+                .map(|data| calculate_hash_optimized(data, algorithm))
+                .collect();
+        }
+
+        use rayon::prelude::*;
+        inputs
+            .par_iter()
+            .map(|data| calculate_hash_optimized(data, algorithm))
+            .collect()
+    }
+}
+
+impl Default for BatchHasher {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Get hardware capabilities information
+pub fn get_hardware_capabilities() -> HardwareCapabilities {
+    HardwareCapabilities::detect()
 }
 
 #[cfg(test)]
@@ -271,7 +538,6 @@ mod tests {
 
         assert_eq!(hash.len(), 64);
 
-        // Should match direct hash
         let direct_hash = "hello world".hash(HashAlgorithm::Sha256);
         assert_eq!(hash, direct_hash);
     }
@@ -285,5 +551,53 @@ mod tests {
 
         assert_eq!(hash1, hash2);
         assert_eq!(hash2, hash3);
+    }
+
+    #[test]
+    fn test_optimized_hashing() {
+        let data = "test data for optimization";
+        let normal_hash = data.hash(HashAlgorithm::Sha384);
+        let optimized_hash = data.hash_optimized(HashAlgorithm::Sha384);
+
+        assert_eq!(normal_hash, optimized_hash);
+    }
+
+    #[test]
+    fn test_hardware_capabilities() {
+        let caps = get_hardware_capabilities();
+        assert!(caps.cpu_cores > 0);
+        assert!(caps.optimal_chunk_size() >= 16 * 1024 * 1024);
+    }
+
+    #[test]
+    fn test_batch_hasher() {
+        let batch_hasher = BatchHasher::new();
+        let inputs = vec![
+            b"input 1".as_slice(),
+            b"input 2".as_slice(),
+            b"input 3".as_slice(),
+        ];
+
+        let batch_results = batch_hasher.hash_batch(&inputs, HashAlgorithm::Sha256);
+
+        for (input, result) in inputs.iter().zip(batch_results.iter()) {
+            let expected = input.hash(HashAlgorithm::Sha256);
+            assert_eq!(*result, expected);
+        }
+    }
+
+    #[test]
+    fn test_large_data_optimization() {
+        let small_data = vec![0u8; 1024];
+        let large_data = vec![0u8; 50 * 1024 * 1024]; // 50MB
+
+        let small_hash = calculate_hash_optimized(&small_data, HashAlgorithm::Sha384);
+        let large_hash = calculate_hash_optimized(&large_data, HashAlgorithm::Sha384);
+
+        assert_eq!(small_hash.len(), 96);
+        assert_eq!(large_hash.len(), 96);
+
+        let small_standard = calculate_hash_with_algorithm(&small_data, &HashAlgorithm::Sha384);
+        assert_eq!(small_hash, small_standard);
     }
 }

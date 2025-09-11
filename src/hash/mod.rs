@@ -28,7 +28,10 @@
 //! ```
 mod algorithms;
 
-pub use algorithms::{HashAlgorithm, HashBuilder, Hasher};
+pub use algorithms::{
+    calculate_hash_optimized, get_hardware_capabilities, BatchHasher, HardwareCapabilities,
+    HashAlgorithm, HashBuilder, Hasher,
+};
 
 use crate::error::{Error, Result};
 use sha2::{Digest, Sha256, Sha384, Sha512};
