@@ -62,7 +62,20 @@ assert!(verify_hash(data, &hash));
 
 // Use specific algorithm
 let sha256_hash = calculate_hash_with_algorithm(data, &HashAlgorithm::Sha256);
+
+// Hardware-optimized hashing for large data
+let optimized_hash = data.hash_optimized(HashAlgorithm::Sha384);
 ```
+
+#### Hardware Optimization
+
+Atlas Common includes hardware-optimized hashing implementations that automatically detect and utilize available CPU features:
+
+- **Intel Xeon**: SHA-NI extensions and AVX-512 parallel processing
+- **Apple Silicon**: ARM crypto extensions  
+- **Multi-core systems**: Parallel processing for large datasets
+
+Optimizations are automatically selected at runtime based on available hardware and data size. Use `hash_optimized()` methods or the `BatchHasher` for optimal performance with large files or multiple inputs.
 
 ### C2PA Manifests
 

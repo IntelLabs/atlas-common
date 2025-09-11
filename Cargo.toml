@@ -32,7 +32,9 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
 # Hash feature dependencies
-sha2 = { version = "0.10", optional = true }
+sha2 = { version = "0.10", features = ["asm", "asm-aarch64"], optional = true }
+rayon = { version = "1.8", optional = true }
+num_cpus = { version = "1.16", optional = true }
 hex = { version = "0.4", optional = true }
 subtle = { version = "2.5", optional = true }
 
@@ -48,7 +50,7 @@ tokio = { version = "1.35", features = ["full"], optional = true }
 default = ["hash", "c2pa"]
 
 # Core features that can be used independently
-hash = ["dep:sha2", "dep:hex", "dep:subtle"]
+hash = ["dep:sha2", "dep:rayon", "dep:num_cpus", "dep:hex", "dep:subtle"]
 c2pa = ["dep:uuid", "dep:time"]
 storage = ["dep:async-trait"]
 validation = ["c2pa", "hash", "dep:uuid"]

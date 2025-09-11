@@ -194,6 +194,85 @@ fn bench_hash_validation(c: &mut Criterion) {
     });
 }
 
+fn bench_optimized_vs_standard(c: &mut Criterion) {
+    let mut group = c.benchmark_group("optimized_vs_standard");
+
+    let sizes = vec![
+        ("small", 32 * 1024),         // 32KB
+        ("medium", 1024 * 1024),      // 1MB
+        ("large", 10 * 1024 * 1024),  // 10MB
+        ("xlarge", 50 * 1024 * 1024), // 50MB
+    ];
+
+    for (name, size) in sizes {
+        let data = vec![0u8; size];
+        group.throughput(Throughput::Bytes(size as u64));
+
+        group.bench_with_input(BenchmarkId::new("standard", name), &data, |b, data| {
+            b.iter(|| calculate_hash_with_algorithm(black_box(data), &HashAlgorithm::Sha384));
+        });
+
+        group.bench_with_input(BenchmarkId::new("optimized", name), &data, |b, data| {
+            b.iter(|| black_box(data).hash_optimized(HashAlgorithm::Sha384));
+        });
+    }
+
+    group.finish();
+}
+
+fn bench_batch_hasher(c: &mut Criterion) {
+    use atlas_common::hash::BatchHasher;
+
+    let mut group = c.benchmark_group("batch_hasher");
+
+    let batch_sizes = vec![
+        ("small_batch", 5),
+        ("medium_batch", 20),
+        ("large_batch", 100),
+    ];
+
+    let file_size = 1024 * 1024; // 1MB per file
+
+    for (name, count) in batch_sizes {
+        let inputs: Vec<Vec<u8>> = (0..count).map(|_| vec![0u8; file_size]).collect();
+        let input_refs: Vec<&[u8]> = inputs.iter().map(|v| v.as_slice()).collect();
+
+        group.throughput(Throughput::Bytes((file_size * count) as u64));
+
+        group.bench_with_input(
+            BenchmarkId::new("sequential", name),
+            &input_refs,
+            |b, inputs| {
+                b.iter(|| {
+                    let _hashes: Vec<String> = inputs
+                        .iter()
+                        .map(|data| {
+                            calculate_hash_with_algorithm(black_box(data), &HashAlgorithm::Sha384)
+                        })
+                        .collect();
+                });
+            },
+        );
+
+        group.bench_with_input(BenchmarkId::new("batch", name), &input_refs, |b, inputs| {
+            b.iter(|| {
+                let batch_hasher = BatchHasher::new();
+                batch_hasher.hash_batch(black_box(inputs), HashAlgorithm::Sha384)
+            });
+        });
+    }
+
+    group.finish();
+}
+
+fn bench_hardware_detection(c: &mut Criterion) {
+    use atlas_common::hash::get_hardware_capabilities;
+
+    c.bench_function("hardware_detection", |b| {
+        b.iter(|| get_hardware_capabilities());
+    });
+}
+
 criterion_group!(
     benches,
     bench_hash_algorithms,
@@ -204,6 +283,9 @@ criterion_group!(
     bench_default_vs_specific,
     bench_algorithm_detection,
     bench_hash_validation,
+    bench_optimized_vs_standard,
+    bench_batch_hasher,
+    bench_hardware_detection,
 );
 
 criterion_main!(benches);
