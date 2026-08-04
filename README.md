@@ -1,7 +1,8 @@
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/IntelLabs/atlas-common/badge)](https://scorecard.dev/viewer/?uri=github.com/IntelLabs/atlas-common)
 ![GitHub License](https://img.shields.io/github/license/IntelLabs/atlas-common)
 [![Crates.io](https://img.shields.io/crates/v/atlas-common.svg)](https://crates.io/crates/atlas-common)
-[![Documentation](https://docs.rs/atlas-common/badge.svg)](https://docs.rs/atlas-common)
+[![Documentation](https://docs.rs/atlas-common/badge.svg)](https://docs.rs/atlas-common)  
+<!-- Touched 8/3/2026 -->
 
 # Atlas Common
 
